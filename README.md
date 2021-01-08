@@ -1,1 +1,1 @@
-frip-demo
+ToyProject
