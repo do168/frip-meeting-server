@@ -8,7 +8,6 @@ export default class meetingMapper {
   }
   public async createMeeting(params: meetingDto): Promise<JSON> {
     try {
-      // const param = {params.id, params.hostId, title, content, startAt, endAt, deadline, createdAt, updatedAt, maxParticipant, place, status };
       const query = mybatisMapper.getStatement('meetingMapper', 'createMeeting', params.toParam());
       const post = await mysql.connect((con: any) => con.query(query))();
       return post;
@@ -22,28 +21,28 @@ export default class meetingMapper {
       const param = { id: id };
       const query = mybatisMapper.getStatement('meetingMapper', 'getMeeting', param);
       const get = await mysql.connect((con: any) => con.query(query))();
-      return get;
+      return get[0];
     } catch (error) {
       throw error;
     }
   }
 
-  public async getHostMeetings(hostId: number): Promise<JSON> {
+  public async listHostMeetings(hostId: string): Promise<JSON> {
     try {
       const param = { hostId: hostId };
       const query = mybatisMapper.getStatement('meetingMapper', 'getHostMeetings', param);
       const get = await mysql.connect((con: any) => con.query(query))();
-      return get;
+      return get[0];
     } catch (error) {
       throw error;
     }
   }
 
-  public async getAllMeetings(): Promise<JSON> {
+  public async listAllMeetings(): Promise<JSON> {
     try {
       const query = mybatisMapper.getStatement('meetingMapper', 'getAllMeetings');
       const get = await mysql.connect((con: any) => con.query(query))();
-      return get;
+      return get[0];
     } catch (error) {
       throw error;
     }
