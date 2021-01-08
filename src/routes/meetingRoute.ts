@@ -7,7 +7,7 @@ import meetingMapper from '../mapper/meetingMapper';
  *  name: Meeting
  *  description: Meeting CRUD
  * definitions:
- *  meetingDto:
+ *  meetingPostParam:
  *    type: object
  *    properties:
  *      title:
@@ -25,35 +25,36 @@ import meetingMapper from '../mapper/meetingMapper';
  *      place:
  *         type: string
  */
+
 const router = Router();
 const meetingMapperInstance = new meetingMapper();
 const meetingServiceInstance = new meetingService(meetingMapperInstance);
 
 /**
  * @swagger
- *  /post:
- *    post:
+ *  /meeting:
+ *    get:
  *      tags:
  *      - Meeting
- *      description: 특정 호스트의 모임 등록 리스트를 가져온다.
+ *      description: 특정 모임 등록 글의 상세정보를 조회하는 api
  *      produces:
  *      - applicaion/json
  *      parameters:
- *      - in: body
- *        name: hostid
- *        schema:
- *          $ref: '#/definitions/meetingDto'
+ *      - name: id
+ *        type: number
+ *        in: query
+ *        description: "모임 번호"
  *      responses:
  *       200:
  *        description: board of column list
  *        schema:
  */
 
-router.post('/post', async (req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
-    const id = Number(req.params.id);
+    const id = Number(req.query.id);
     const result = await meetingServiceInstance.getMeeting(id);
-    return res.json(result).status(201);
+    return res.json(result).status(200);
   } catch (error) {
     console.log(error);
     res.send({ Error: error.message }).status(400);
@@ -62,7 +63,7 @@ router.post('/post', async (req: Request, res: Response) => {
 
 /**
  * @swagger
- *  /list/{hostid}:
+ *  /meeting/list/host:
  *    get:
  *      tags:
  *      - Meeting
@@ -71,19 +72,19 @@ router.post('/post', async (req: Request, res: Response) => {
  *      - applicaion/json
  *      parameters:
  *      - name: hostid
- *        type: number
- *        in: params
+ *        type: string
+ *        in: query
  *        description: "호스트 ID"
  *      responses:
  *       200:
  *        description: board of column list
  *        schema:
  */
-router.get('/list/:hostid', async (req: Request, res: Response) => {
+router.get('/list/host', async (req: Request, res: Response) => {
   try {
-    const id = Number(req.params.id);
-    const meetingList = await meetingServiceInstance.getHostMeetings(id);
-    res.send({ MeetingList: meetingList }).status(200);
+    const hostId = String(req.query.hostid);
+    const hostMeetingList = await meetingServiceInstance.listHostMeetings(hostId);
+    res.send(hostMeetingList).status(200);
   } catch (error) {
     console.log(error);
     res.send({ Error: error.message }).status(400);
@@ -92,41 +93,11 @@ router.get('/list/:hostid', async (req: Request, res: Response) => {
 
 /**
  * @swagger
- *  /list/{id}:
+ *  /meeting/list/all:
  *    get:
  *      tags:
  *      - Meeting
- *      description: 특정 모임 등록 글을 가져온다.
- *      produces:
- *      - applicaion/json
- *      parameters:
- *      - name: id
- *        type: number
- *        in: params
- *        description: "모임 번호"
- *      responses:
- *       200:
- *        description: board of column list
- *        schema:
- */
-router.get('/list/:id', async (req: Request, res: Response) => {
-  try {
-    const id = Number(req.params.id);
-    const result = await meetingServiceInstance.getMeeting(id);
-    return res.json(result).status(200);
-  } catch (error) {
-    console.log(error);
-    res.send({ Error: error.message }).status(400);
-  }
-});
-
-/**
- * @swagger
- *  /listAll:
- *    get:
- *      tags:
- *      - Meeting
- *      description: 전체 모임 등록 글 리스트를 가져온다.
+ *      description: 전체 모임글 리스트를 가져온다.
  *      produces:
  *      - applicaion/json
  *      responses:
@@ -134,10 +105,41 @@ router.get('/list/:id', async (req: Request, res: Response) => {
  *        description: board of all meeting list
  *        schema:
  */
-router.get('/listAll', async (req: Request, res: Response) => {
+router.get('/list/all', async (req: Request, res: Response) => {
   try {
-    const result = await meetingServiceInstance.getAllMeetings();
-    return res.json(result).status(200);
+    const allMeetingList = await meetingServiceInstance.listAllMeetings();
+    res.send(allMeetingList).status(200);
+  } catch (error) {
+    console.log(error);
+    res.send({ Error: error.message }).status(400);
+  }
+});
+
+/**
+ * @swagger
+ *  /meeting:
+ *    post:
+ *      tags:
+ *      - Meeting
+ *      description: 미팅 등록 api
+ *      produces:
+ *      - applicaion/json
+ *      parameters:
+ *      - in: body
+ *        name: hostid
+ *        schema:
+ *          $ref: '#/definitions/meetingPostParam'
+ *      responses:
+ *       200:
+ *        description: board of column list
+ *        schema:
+ */
+
+router.post('/', async (req: Request, res: Response) => {
+  try {
+    const param = req.body;
+    const result = await meetingServiceInstance.createMeeting(param);
+    return res.json(result).status(201);
   } catch (error) {
     console.log(error);
     res.send({ Error: error.message }).status(400);
