@@ -1,16 +1,24 @@
 import mybatisMapper from 'mybatis-mapper';
 import { Mysql as mysql } from '../config/mysql';
+import { meetingPostParam } from '../model/input/meetingPostParam';
 import { meetingDto } from '../model/meetingDto';
 
 export default class meetingMapper {
   constructor() {
     mybatisMapper.createMapper(['resource/mapper/meetingMapper.xml']);
   }
-  public async createMeeting(params: meetingDto): Promise<JSON> {
+  public async createMeeting(params: meetingPostParam): Promise<JSON> {
     try {
-      const query = mybatisMapper.getStatement('meetingMapper', 'createMeeting', params.toParam());
-      const post = await mysql.connect((con: any) => con.query(query))();
-      return post;
+      const param = {title: params.title, 
+        content: params.content,
+        startAt: params.startAt,
+        endAt: params.endAt,
+        deadline: params.deadline,
+        maxParticipant: params.maxParticipant,
+        place: params.place }
+      const query = mybatisMapper.getStatement('meetingMapper', 'createMeeting', param);
+      const post = await mysql.transaction((con: any) => con.query(query))();
+      return post[0];
     } catch (error) {
       throw error;
     }

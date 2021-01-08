@@ -1,12 +1,14 @@
-import { meetingDto } from '../model/meetingDto';
+import { meetingPostParam } from '../model/input/meetingPostParam';
 import meetingMapper from '../mapper/meetingMapper';
 
 export default class meetingService {
   meetingMapper: meetingMapper;
+
   constructor(meetingMapper: meetingMapper) {
     this.meetingMapper = meetingMapper;
   }
-  public async createMeeting(param: meetingDto): Promise<JSON> {
+
+  public async createMeeting(param: meetingPostParam): Promise<JSON> {
     try {
       return await this.meetingMapper.createMeeting(param);
     } catch (error) {
