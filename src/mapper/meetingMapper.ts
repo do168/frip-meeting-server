@@ -46,10 +46,21 @@ export default class meetingMapper {
     }
   }
 
-  public async listAllMeetings(): Promise<JSON> {
+  public async listMeetings(): Promise<JSON> {
     try {
       const query = mybatisMapper.getStatement('meetingMapper', 'getAllMeetings');
       const get = await mysql.connect((con: any) => con.query(query))();
+      return get[0];
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  public async deleteMeeting(id: number): Promise<JSON> {
+    try {
+      const param = {id: id};
+      const query = mybatisMapper.getStatement('meetingMapper', 'deleteMeeting', param);
+      const get = await mysql.transaction((con: any) => con.query(query))();
       return get[0];
     } catch (error) {
       throw error;
