@@ -1,6 +1,6 @@
-#Frip-demo
+# Frip-demo
 프립 데모버전을 만드는 Toy Project
-#UseCase
+# UseCase
 ```plantuml
 @startuml
 left to right direction
@@ -30,4 +30,4 @@ rectangle meeting {
 }
 @enduml
 ```
-#ERD
+# ERD
