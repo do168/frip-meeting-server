@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import meetingService from "../services/meetingService";
 import meetingMapper from "../mapper/meetingMapper";
+import serviceUtil from "../util/serviceUtil";
 /**
  * @swagger
  * tags:
@@ -10,6 +11,8 @@ import meetingMapper from "../mapper/meetingMapper";
  *  meetingPostParam:
  *    type: object
  *    properties:
+ *      host:
+ *         type: string
  *      title:
  *         type: string
  *      content:
@@ -28,17 +31,25 @@ import meetingMapper from "../mapper/meetingMapper";
 
 const router = Router();
 const meetingMapperInstance = new meetingMapper();
-const meetingServiceInstance = new meetingService(meetingMapperInstance);
+const serviceUtilInstance = new serviceUtil();
+const meetingServiceInstance = new meetingService(meetingMapperInstance, serviceUtilInstance);
+const hostMeetingPageScale = 5;
+const meetingPageScale = 10;
 
 /**
  * @swagger
- *  /meetings:
+ *  /meetings?pageNum=value:
  *    get:
  *      tags:
  *      - Meeting
  *      description: 전체 모임글 리스트를 가져온다.
  *      produces:
  *      - applicaion/json
+ *      parameters:
+ *      - name: pageNum
+ *        type: number
+ *        in: query
+ *        description: "페이지 번호"
  *      responses:
  *       200:
  *        description: board of all meeting list
@@ -47,7 +58,8 @@ const meetingServiceInstance = new meetingService(meetingMapperInstance);
 
 router.get("/", async (req: Request, res: Response) => {
 	try {
-		const allMeetingList = await meetingServiceInstance.listMeetings();
+		const pageNum = Number(req.query.pageNum);
+		const allMeetingList = await meetingServiceInstance.listMeetings(pageNum);
 		res.send(allMeetingList).status(200);
 	} catch (error) {
 		console.log(error);
@@ -88,7 +100,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 
 /**
  * @swagger
- *  /meetings/{hostId}:
+ *  /meetings?host_id=value&pageNum=value
  *    get:
  *      tags:
  *      - Meeting
@@ -100,16 +112,22 @@ router.get("/:id", async (req: Request, res: Response) => {
  *        type: string
  *        in: path
  *        description: "호스트 ID"
+ *      - name: pageNum
+ *        type: number
+ *        in: path
+ *        description: "페이지 번호"
  *      responses:
  *       200:
  *        description: board of the host's meeting list
  *        schema:
  */
-router.get("/:hostId", async (req: Request, res: Response) => {
+router.get("/", async (req: Request, res: Response) => {
 	try {
-		const hostId = String(req.params.hostId);
+		const hostId = String(req.query.hostId);
+		const pageNum = Number(req.query.pageNum);
 		const hostMeetingList = await meetingServiceInstance.listHostMeetings(
-			hostId
+			hostId,
+			pageNum
 		);
 		res.send(hostMeetingList).status(200);
 	} catch (error) {
@@ -134,7 +152,7 @@ router.get("/:hostId", async (req: Request, res: Response) => {
  *          $ref: '#/definitions/meetingPostParam'
  *      responses:
  *       200:
- *        description: board of column list
+ *        description: 
  *        schema:
  */
 
@@ -173,6 +191,119 @@ router.delete("/:id", async (req: Request, res: Response) => {
 	try {
 		const param = Number(req.params.id);
 		const result = await meetingServiceInstance.deleteMeeting(param);
+		return res.json(result).status(200);
+	} catch (error) {
+		console.log(error);
+		res.send({ Error: error.message }).status(400);
+	}
+});
+
+/**
+ * @swagger
+ *  /meetings/{id}:
+ *    put:
+ *      tags:
+ *      - Meeting
+ *      description: 미팅 수정 api
+ *      produces:
+ *      - applicaion/json
+ *      parameters:
+ *      - in: path
+ *        name: id
+ *        type: number
+ *        description: "미팅 ID"
+ *      - in: body
+ *        name: meetingPostParam
+ *        schema:
+ *          $ref: '#/definitions/meetingPostParam'
+ *      responses:
+ *       200:
+ *        description: 
+ *        schema:
+ */
+
+router.put("/:id", async (req: Request, res: Response) => {
+  try {
+    const param = Number(req.params.id);
+    const body = req.body;
+    const result = await meetingServiceInstance.updateMeeting(param, body);
+    return res.json(result).status(200);
+  } catch (error) {
+    console.log(error);
+    res.send({Error: error.message }).status(400);
+  }
+});
+
+/**
+ * @swagger
+ *  /meetings/{id}/participations?user_id=value:
+ *    post:
+ *      tags:
+ *      - Meeting
+ *      description: 미팅 참가 신청 api
+ *      produces:
+ *      - applicaion/json
+ *      parameters:
+ *      - in: path
+ *        name: id
+ *        type: number
+ *        description: "미팅 ID"
+ *      - in : query
+ *        name: user_id
+ *        type: string
+ *        description: "참가 신청 유저 ID"
+ *      responses:
+ *       200:
+ *        description: 
+ *        schema:
+ */
+
+router.post("/:id/participations", async (req: Request, res: Response) => {
+	try {
+    const param = Number(req.params.id);
+    const query = String(req.query.user_id);
+    const result = await meetingServiceInstance.createMeetingParticipation( param, query );
+		return res.json(result).status(201);
+	} catch (error) {
+		console.log(error);
+		res.send({ Error: error.message }).status(400);
+	}
+});
+
+/**
+ * @swagger
+ *  /meetings/{id}/participations/{participation_id}?user_id=value:
+ *    delete:
+ *      tags:
+ *      - Meeting
+ *      description: 미팅 참가 신청 취소 api
+ *      produces:
+ *      - applicaion/json
+ *      parameters:
+ *      - name: id
+ *        type: number
+ *        in: path
+ *        description: "미팅 ID"
+ *       - name: participation_id
+ *        type: number
+ *        in: path
+ *        description: "참가 신청 ID"
+ *       - in : query
+ *        name: user_id
+ *        type: string
+ *        description: "참가 신청 유저 ID"
+ *      responses:
+ *       200:
+ *        description: soft delete success
+ *        schema:
+ */
+
+router.delete("/:id/participations/{participation_id}", async (req: Request, res: Response) => {
+	try {
+    const participationId = Number(req.params.participation_id);
+    const param = participationId;
+    const query = String(req.query.user_id);
+		const result = await meetingServiceInstance.deleteMeetingParticipation( param, query );
 		return res.json(result).status(201);
 	} catch (error) {
 		console.log(error);

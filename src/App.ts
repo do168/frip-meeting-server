@@ -2,6 +2,7 @@ import express from 'express';
 import http from 'http';
 import swaggerRoute from './middleware/swaggerRoute';
 import meetingRoute from './routes/meetingRoute';
+import reviewRoute from './routes/reviewRoute';
 
 export class App {
   private express: express.Application;
@@ -26,5 +27,6 @@ export class App {
 
   public routes(): void {
     this.express.use('/meetings', meetingRoute);
+    this.express.use('/reviews', reviewRoute);
   }
 }

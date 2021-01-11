@@ -17,6 +17,7 @@
       meeting
     WHERE
       hostId = #{hostId}
+    LIMIT #{offset}, #{pageSize}
   </select>
 
   <select id="listMeetings">
@@ -24,6 +25,7 @@
       *
     FROM
       meeting  
+    LIMIT #{offset}, #{pageSize}
   </select>
 
   <select id="createMeeting">

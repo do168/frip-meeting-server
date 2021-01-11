@@ -35,7 +35,7 @@ export default class reviewService {
 	 *
 	 * @param meetingId
 	 */
-	public async listMeetingReviews(meetingId: number): Promise<JSON> {
+	public async listMeetingReviews(meetingId: number, pageNum: number): Promise<JSON> {
 		try {
 			return await this.reviewMapper.listMeetingReviews(meetingId);
 		} catch (error) {
@@ -43,7 +43,7 @@ export default class reviewService {
 		}
 	}
 
-	public async listUserReviews(userId: string): Promise<JSON> {
+	public async listUserReviews(userId: string, pageNum: number): Promise<JSON> {
 		try {
 			return await this.reviewMapper.listUserReviews(userId);
 		} catch (error) {
@@ -57,5 +57,13 @@ export default class reviewService {
 		} catch (error) {
 			throw error;
 		}
-	}
+  }
+  
+  public async updateReview(id: number, body: reviewPostParam): Promise<JSON> {
+    try {
+      return await this.reviewMapper.updateReview(id, body);
+    } catch (error) {
+      throw error;
+    }
+  }
 }

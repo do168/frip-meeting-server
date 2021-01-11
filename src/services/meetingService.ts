@@ -1,11 +1,19 @@
 import { meetingPostParam } from "../model/input/meetingPostParam";
 import meetingMapper from "../mapper/meetingMapper";
+import serviceUtil from "../util/serviceUtil";
+
+// 전체 미팅 목록 페이지 크기
+const PAGE = 10;
+// 호스트별 미팅 목록 페이지 크기
+const PAGE_HOST = 5;
 
 export default class meetingService {
 	meetingMapper: meetingMapper;
+	serviceUtil: serviceUtil;
 
-	constructor(meetingMapper: meetingMapper) {
+	constructor(meetingMapper: meetingMapper, serviceUtil: serviceUtil) {
 		this.meetingMapper = meetingMapper;
+		this.serviceUtil = serviceUtil;
 	}
 
 	public async createMeeting(param: meetingPostParam): Promise<JSON> {
@@ -35,17 +43,19 @@ export default class meetingService {
 	 *
 	 * @param hostId
 	 */
-	public async listHostMeetings(hostId: string): Promise<JSON> {
+	public async listHostMeetings(hostId: string, pageNum: number): Promise<JSON> {
 		try {
-			return await this.meetingMapper.listHostMeetings(hostId);
+			const offset = this.serviceUtil.caculateOffset(pageNum, PAGE_HOST);
+			return await this.meetingMapper.listHostMeetings(hostId, offset, PAGE_HOST);
 		} catch (error) {
 			throw error;
 		}
 	}
 
-	public async listMeetings(): Promise<JSON> {
+	public async listMeetings(pageNum: number): Promise<JSON> {
 		try {
-			return await this.meetingMapper.listMeetings();
+			const offset = this.serviceUtil.caculateOffset(pageNum, PAGE);
+			return await this.meetingMapper.listMeetings(offset, PAGE);
 		} catch (error) {
 			throw error;
 		}
@@ -54,6 +64,30 @@ export default class meetingService {
 	public async deleteMeeting(id: number): Promise<JSON> {
 		try {
 			return await this.meetingMapper.deleteMeeting(id);
+		} catch (error) {
+			throw error;
+		}
+	}
+
+	public async updateMeeting(id: number, body: meetingPostParam): Promise<JSON> {
+		try {
+			return await this.meetingMapper.updateMeeting(id, body);
+		} catch (error) {
+			throw error;
+		}
+	}
+
+	public async createMeetingParticipation(id: number, userId: string): Promise<JSON> {
+		try {
+			return await this.meetingMapper.createMeetingParticipation(id, userId);
+		} catch (error) {
+			throw error;
+		}
+	}
+
+	public async deleteMeetingParticipation(participationId: number, userId: string): Promise<JSON> {
+		try {
+			return await this.meetingMapper.deleteMeetingParticipation(participationId, userId);
 		} catch (error) {
 			throw error;
 		}

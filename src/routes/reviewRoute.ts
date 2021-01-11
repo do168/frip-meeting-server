@@ -55,13 +55,22 @@ router.get("/:id", async (req: Request, res: Response) => {
 
 /**
  * @swagger
- *  /reviews/{meetingId}:
+ *  /reviews?meeting_id=value&pageNum=value:
  *    get:
  *      tags:
  *      - Review
  *      description: 특정 모임의 리뷰 리스트를 가져온다
  *      produces:
  *      - applicaion/json
+ *      parameters:
+ *      - name: meetingId
+ *        type: string
+ *        in: query
+ *        description: "미팅 아이디"
+ *      - name: pageNum
+ *        type: number
+ *        in: query
+ *        description: "페이지 번호"
  *      responses:
  *       200:
  *        description: review list of the meetingId
@@ -70,10 +79,9 @@ router.get("/:id", async (req: Request, res: Response) => {
 
 router.get("/:meetingId", async (req: Request, res: Response) => {
 	try {
-		const meetingId = Number(req.params.meetingId);
-		const listMeetingReview = await reviewServiceInstance.listMeetingReviews(
-			meetingId
-		);
+		const meetingId = Number(req.query.meetingId);
+		const pageNum = Number(req.query.pageNuM);
+		const listMeetingReview = await reviewServiceInstance.listMeetingReviews( meetingId, pageNum );
 		res.send(listMeetingReview).status(200);
 	} catch (error) {
 		console.log(error);
@@ -83,7 +91,7 @@ router.get("/:meetingId", async (req: Request, res: Response) => {
 
 /**
  * @swagger
- *  /reviews/{userId}:
+ *  /reviews?user_id=value&pageNum=value:
  *    get:
  *      tags:
  *      - Review
@@ -91,10 +99,14 @@ router.get("/:meetingId", async (req: Request, res: Response) => {
  *      produces:
  *      - applicaion/json
  *      parameters:
- *      - name: id
+ *      - name: userId
  *        type: string
- *        in: path
+ *        in: query
  *        description: "유저 아이디"
+ *      - name: pageNum
+ *        type: number
+ *        in: query
+ *        description: "페이지 번호"
  *      responses:
  *       200:
  *        description: review list of the userId
@@ -103,8 +115,9 @@ router.get("/:meetingId", async (req: Request, res: Response) => {
 
 router.get("/:userId", async (req: Request, res: Response) => {
 	try {
-		const id = String(req.params.id);
-		const listUserReviews = await reviewServiceInstance.listUserReviews(id);
+    const id = String(req.query.id);
+    const pageNum = Number(req.query.pageNum);
+    const listUserReviews = await reviewServiceInstance.listUserReviews(id, pageNum);
 		return res.json(listUserReviews).status(200);
 	} catch (error) {
 		console.log(error);
@@ -172,6 +185,42 @@ router.delete("/:id", async (req: Request, res: Response) => {
 		console.log(error);
 		res.send({ Error: error.message }).status(400);
 	}
+});
+
+/**
+ * @swagger
+ *  /reviews/{id}:
+ *    put:
+ *      tags:
+ *      - Review
+ *      description: 리뷰 수정 api
+ *      produces:
+ *      - applicaion/json
+ *      parameters:
+ *      - in: path
+ *        name: id
+ *        type: number
+ *        description: "리뷰 ID"
+ *      - in: body
+ *        name: reviewPostParam
+ *        schema:
+ *          $ref: '#/definitions/reviewPostParam'
+ *      responses:
+ *       200:
+ *        description: 
+ *        schema:
+ */
+
+router.put("/:id", async (req: Request, res: Response) => {
+  try {
+    const param = Number(req.params.id);
+    const body = req.body;
+    const result = await reviewServiceInstance.updateReview(param, body);
+    return res.json(result).status(200);
+  } catch (error) {
+    console.log(error);
+    res.send({Error: error.message }).status(400);
+  }
 });
 
 export default router;

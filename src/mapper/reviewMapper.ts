@@ -65,4 +65,18 @@ export default class reviewMapper {
       throw error;
     }
   }
+
+  public async updateReview(id: number, body: reviewPostParam): Promise<JSON> {
+    try {
+      const param = {
+        title: body.title, 
+        content: body.content,
+      };
+      const query = mybatisMapper.getStatement('reviewMapper', 'updateReview', param);
+      const update = await mysql.transaction((con: any) => con.query(query))();
+      return update[0];
+    } catch (error) {
+      throw error;
+    }
+  }
 }

@@ -20,6 +20,7 @@
       review
     WHERE
       meetingId = #{meetingId}
+    LIMIT #{offset}, #{pageNum}
   </select>
 
   <!-- 특정 유저의 리뷰 히스토리 조회 -->
@@ -30,8 +31,10 @@
       review
     WHERE
       userId = #{userId}  
+    LIMIT #{offset}, #{pageNum}
   </select>
 
+  <!-- 리뷰 등록 -->
   <select id="createReview">
     insert into review(
       meetingId,
@@ -53,6 +56,17 @@
       review
     set 
       status = 0
+    where 
+      id = #{id}
+  </select>
+
+  <!-- 리뷰 수정 -->
+  <select id="updateReview">
+    update 
+      review
+    set 
+      title = #{title},
+      content = #{content}
     where 
       id = #{id}
   </select>
