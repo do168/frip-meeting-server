@@ -10,7 +10,7 @@
       id = #{id}
   </select>
 
-  <select id="getHostMeetings">
+  <select id="listHostMeetings">
     SELECT
       *
     FROM
@@ -18,5 +18,41 @@
     WHERE
       hostId = #{hostId}
   </select>
-  
+
+  <select id="listMeetings">
+    select
+      *
+    FROM
+      meeting  
+  </select>
+
+  <select id="createMeeting">
+    insert into meeting(
+      title,
+      content,
+      startAt,
+      endAt,
+      deadline,
+      maxParticipant,
+      place
+    )
+    values(
+      #{title},
+      #{content},
+      #{startAt},
+      #{endAt},
+      #{deadline},
+      #{maxParticipant},
+      #{place}
+    )
+  </select>
+
+  <select id="deleteMeeting">
+    update 
+      meeting
+    set 
+      status = 0
+    where 
+      id = #{id}
+  </select>
 </mapper>

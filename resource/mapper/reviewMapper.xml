@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="reviewMapper">  
+  <!-- 특정 리뷰 데이터 조회 -->
+  <select id="getReview">
+    SELECT
+      *
+    FROM
+      review
+    WHERE
+      id = #{id}
+  </select>
+  
+  <!-- 특정 미팅의 리뷰 리스트 조회 -->
+  <!-- TODO: 리턴 어떤 칼럼 줄건지 생각하자-->
+  <select id="listMeetingReviews">
+    SELECT
+      *
+    FROM
+      review
+    WHERE
+      meetingId = #{meetingId}
+  </select>
+
+  <!-- 특정 유저의 리뷰 히스토리 조회 -->
+  <select id="listUserReviews">
+    select
+      *
+    FROM
+      review
+    WHERE
+      userId = #{userId}  
+  </select>
+
+  <select id="createReview">
+    insert into review(
+      meetingId,
+      userId,
+      title,
+      content
+    )
+    values(
+      #{meetingId},
+      #{userId},
+      #{title},
+      #{content}
+    )
+  </select>
+  
+  <!-- 리뷰 삭제 - soft delete -->
+  <select id="deleteReview">
+    update 
+      review
+    set 
+      status = 0
+    where 
+      id = #{id}
+  </select>
+</mapper>

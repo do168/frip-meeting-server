@@ -25,6 +25,6 @@ export class App {
   }
 
   public routes(): void {
-    this.express.use('/meeting', meetingRoute);
+    this.express.use('/meetings', meetingRoute);
   }
 }
