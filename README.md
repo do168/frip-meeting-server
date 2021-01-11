@@ -31,3 +31,4 @@ rectangle meeting {
 @enduml
 ```
 # ERD
+<img width="950" alt="ERD" src="https://user-images.githubusercontent.com/54763136/104164758-c03da080-543b-11eb-90b7-e8be29f21226.png">
