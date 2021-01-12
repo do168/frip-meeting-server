@@ -1,7 +1,9 @@
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, NextFunction } from "express";
+import { wrap } from "./wrap";
 import meetingService from "../services/meetingService";
 import meetingMapper from "../mapper/meetingMapper";
 import serviceUtil from "../util/serviceUtil";
+import { meetingPostParam } from "../model/input/meetingPostParam";
 /**
  * @swagger
  * tags:
@@ -13,9 +15,9 @@ import serviceUtil from "../util/serviceUtil";
  *    properties:
  *      host:
  *        type: string
- *      content:
- *        type: string
  *      title:
+ *        type: string
+ *      content:
  *        type: string
  *      startAt:
  *        type: string
@@ -33,8 +35,6 @@ const router = Router();
 const meetingMapperInstance = new meetingMapper();
 const serviceUtilInstance = new serviceUtil();
 const meetingServiceInstance = new meetingService(meetingMapperInstance, serviceUtilInstance);
-const hostMeetingPageScale = 5;
-const meetingPageScale = 10;
 
 /**
  * @swagger
@@ -61,17 +61,12 @@ const meetingPageScale = 10;
  *        schema:
  */
 
-router.get("/", async (req: Request, res: Response) => {
-	try {
+router.get("/", wrap(async(req: Request, res: Response, next: NextFunction) => {
     const hostId = String(req.query.hostId);
     const pageNum = Number(req.query.pageNum);
 		const allMeetingList = await meetingServiceInstance.listMeetings(hostId, pageNum);
 		res.send(allMeetingList).status(200);
-	} catch (error) {
-		console.log(error);
-		res.send({ Error: error.message }).status(400);
-	}
-});
+}));
 
 /**
  * @swagger
@@ -93,16 +88,11 @@ router.get("/", async (req: Request, res: Response) => {
  *        schema:
  */
 
-router.get("/:id", async (req: Request, res: Response) => {
-	try {
+router.get("/:id", wrap(async(req: Request, res: Response, next: NextFunction) => {
 		const id = Number(req.params.id);
 		const result = await meetingServiceInstance.getMeeting(id);
 		return res.json(result).status(200);
-	} catch (error) {
-		console.log(error);
-		res.send({ Error: error.message }).status(400);
-	}
-});
+}));
 
 /**
  * @swagger
@@ -115,6 +105,7 @@ router.get("/:id", async (req: Request, res: Response) => {
  *      - applicaion/json
  *      parameters:
  *      - in: body
+ *        name: meetingPostParam
  *        schema:
  *          $ref: '#/definitions/meetingPostParam'
  *      responses:
@@ -123,16 +114,11 @@ router.get("/:id", async (req: Request, res: Response) => {
  *        schema:
  */
 
-router.post("/", async (req: Request, res: Response) => {
-	try {
-		const param = req.body;
-		const result = await meetingServiceInstance.createMeeting(param);
+router.post("/", wrap(async(req: Request, res: Response, next: NextFunction) => {
+    const meetingInfo = req.body as meetingPostParam;
+		const result = await meetingServiceInstance.createMeeting(meetingInfo);
 		return res.json(result).status(201);
-	} catch (error) {
-		console.log(error);
-		res.send({ Error: error.message }).status(400);
-	}
-});
+}));
 
 /**
  * @swagger
@@ -154,16 +140,11 @@ router.post("/", async (req: Request, res: Response) => {
  *        schema:
  */
 
-router.delete("/:id", async (req: Request, res: Response) => {
-	try {
-		const param = Number(req.params.id);
-		const result = await meetingServiceInstance.deleteMeeting(param);
+router.delete("/:id", wrap(async(req: Request, res: Response, next: NextFunction) => {
+		const id = Number(req.params.id);
+		const result = await meetingServiceInstance.deleteMeeting(id);
 		return res.json(result).status(200);
-	} catch (error) {
-		console.log(error);
-		res.send({ Error: error.message }).status(400);
-	}
-});
+}));
 
 /**
  * @swagger
@@ -189,17 +170,12 @@ router.delete("/:id", async (req: Request, res: Response) => {
  *        schema:
  */
 
-router.put("/:id", async (req: Request, res: Response) => {
-  try {
+router.put("/:id", wrap(async(req: Request, res: Response, next: NextFunction) => {
     const param = Number(req.params.id);
-    const body = req.body;
-    const result = await meetingServiceInstance.updateMeeting(param, body);
+    const meetingInfo = req.body;
+    const result = await meetingServiceInstance.updateMeeting(param, meetingInfo);
     return res.json(result).status(200);
-  } catch (error) {
-    console.log(error);
-    res.send({Error: error.message }).status(400);
-  }
-});
+}));
 
 /**
  * @swagger
@@ -230,18 +206,12 @@ router.put("/:id", async (req: Request, res: Response) => {
  *        schema:
  */
 
-router.post("/:id/participations", async (req: Request, res: Response) => {
-	try {
+router.post("/:id/participations", wrap(async(req: Request, res: Response, next: NextFunction) => {
     const param = Number(req.params.id);
-    const body = req.body.userId;
-    console.log(param, body);
-    const result = await meetingServiceInstance.createMeetingParticipation( param, body );
+    const userId = req.body.userId;
+    const result = await meetingServiceInstance.createMeetingParticipation( param, userId );
 		return res.json(result).status(201);
-	} catch (error) {
-		console.log(error);
-		res.send({ Error: error.message }).status(400);
-	}
-});
+}));
 
 /**
  * @swagger
@@ -271,17 +241,12 @@ router.post("/:id/participations", async (req: Request, res: Response) => {
  *        schema:
  */
 
-router.delete("/:id/participations/{participation_id}", async (req: Request, res: Response) => {
-	try {
+router.delete("/:id/participations/{participation_id}", wrap(async(req: Request, res: Response, next: NextFunction) => {
     const participationId = Number(req.params.participation_id);
     const param = participationId;
     const query = String(req.query.user_id);
 		const result = await meetingServiceInstance.deleteMeetingParticipation( param, query );
 		return res.json(result).status(201);
-	} catch (error) {
-		console.log(error);
-		res.send({ Error: error.message }).status(400);
-	}
-});
+}));
 
 export default router;

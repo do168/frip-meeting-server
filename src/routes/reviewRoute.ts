@@ -1,4 +1,5 @@
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, NextFunction } from "express";
+import { wrap } from "./wrap";
 import reviewMapper from "../mapper/reviewMapper";
 import reviewService from "../services/reviewService";
 import serviceUtil from "../util/serviceUtil";
@@ -44,16 +45,11 @@ const reviewServiceInstance = new reviewService(reviewMapperInstance, serviceUti
  *        schema:
  */
 
-router.get("/:id", async (req: Request, res: Response) => {
-	try {
+router.get("/:id", wrap(async(req: Request, res: Response, next: NextFunction) => {
 		const id = Number(req.params.id);
 		const review = await reviewServiceInstance.getReview(id);
 		res.send(review).status(200);
-	} catch (error) {
-		console.log(error);
-		res.send({ Error: error.message }).status(400);
-	}
-});
+}));
 
 /**
  * @swagger
@@ -84,18 +80,13 @@ router.get("/:id", async (req: Request, res: Response) => {
  *        schema:
  */
 
-router.get("/", async (req: Request, res: Response) => {
-	try {
+router.get("/", wrap(async(req: Request, res: Response, next: NextFunction) => {
 		const meetingId = Number(req.query.meetingId);
 		const userId = String(req.query.userId);
 		const pageNum = Number(req.query.pageNuM);
 		const listMeetingReview = await reviewServiceInstance.listReviews( meetingId, userId, pageNum );
 		res.send(listMeetingReview).status(200);
-	} catch (error) {
-		console.log(error);
-		res.send({ Error: error.message }).status(400);
-	}
-});
+}));
 
 /**
  * @swagger
@@ -117,16 +108,11 @@ router.get("/", async (req: Request, res: Response) => {
  *        schema:
  */
 
-router.post("/", async (req: Request, res: Response) => {
-	try {
-		const param = req.body;
-		const postResult = await reviewServiceInstance.createReview(param);
+router.post("/", wrap(async(req: Request, res: Response, next: NextFunction) => {
+		const reviewInfo = req.body;
+		const postResult = await reviewServiceInstance.createReview(reviewInfo);
 		return res.json(postResult).status(201);
-	} catch (error) {
-		console.log(error);
-		res.send({ Error: error.message }).status(400);
-	}
-});
+}));
 
 /**
  * @swagger
@@ -148,16 +134,11 @@ router.post("/", async (req: Request, res: Response) => {
  *        schema:
  */
 
-router.delete("/:id", async (req: Request, res: Response) => {
-	try {
-		const param = Number(req.params.id);
-		const deleteResult = await reviewServiceInstance.deleteReview(param);
+router.delete("/:id", wrap(async(req: Request, res: Response, next: NextFunction) => {
+		const id = Number(req.params.id);
+		const deleteResult = await reviewServiceInstance.deleteReview(id);
 		return res.json(deleteResult).status(201);
-	} catch (error) {
-		console.log(error);
-		res.send({ Error: error.message }).status(400);
-	}
-});
+}));
 
 /**
  * @swagger
@@ -183,16 +164,11 @@ router.delete("/:id", async (req: Request, res: Response) => {
  *        schema:
  */
 
-router.put("/:id", async (req: Request, res: Response) => {
-  try {
-    const param = Number(req.params.id);
-    const body = req.body;
-    const result = await reviewServiceInstance.updateReview(param, body);
+router.put("/:id", wrap(async(req: Request, res: Response, next: NextFunction) => {
+    const id = Number(req.params.id);
+    const reviewInfo = req.body;
+    const result = await reviewServiceInstance.updateReview(id, reviewInfo);
     return res.json(result).status(200);
-  } catch (error) {
-    console.log(error);
-    res.send({Error: error.message }).status(400);
-  }
-});
+}));
 
 export default router;

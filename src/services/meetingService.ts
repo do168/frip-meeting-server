@@ -57,10 +57,10 @@ export default class meetingService {
 	 * @param pageNum 페이지 번호
 	 */
 	public async listMeetings(hostId: string, pageNum: number): Promise<JSON> {
-		const offset = this.serviceUtil.caculateOffset(pageNum, PAGE);
 		// hostId가 값이 없는 경우 전체 모임을 조회한다
 		if (this.serviceUtil.isEmpty(hostId)) {
 			try {
+				const offset = this.serviceUtil.caculateOffset(pageNum, PAGE);
 				return await this.meetingMapper.listMeetings(offset, PAGE);
 			} catch (error) {
 				throw error;
@@ -69,11 +69,8 @@ export default class meetingService {
 		// hostId가 값이 있는 경우 해당 호스트의 모임을 조회한다.
 		else {
 			try {
-				return await this.meetingMapper.listHostMeetings(
-					hostId,
-					offset,
-					PAGE_HOST
-				);
+				const offset = this.serviceUtil.caculateOffset(pageNum, PAGE_HOST);
+				return await this.meetingMapper.listHostMeetings( hostId, offset, PAGE_HOST );
 			} catch (error) {
 				throw error;
 			}
@@ -97,10 +94,7 @@ export default class meetingService {
 		}
 	}
 
-	public async updateMeeting(
-		id: number,
-		body: meetingPostParam
-	): Promise<Boolean> {
+	public async updateMeeting(id: number, body: meetingPostParam ): Promise<Boolean> {
 		try {
 			const result = await this.meetingMapper.updateMeeting(id, body);
 			if (result < 1) {
@@ -118,7 +112,7 @@ export default class meetingService {
 	 * @param id 참가할 모임 ID
 	 * @param userId 참가하는 유저 ID
 	 */
-	public async createMeetingParticipation( id: number, userId: string): Promise<Boolean> {
+	public async createMeetingParticipation( id: number, userId: string ): Promise<Boolean> {
 		try {
 			const result = await this.meetingMapper.createMeetingParticipation(
 				id,
@@ -139,10 +133,7 @@ export default class meetingService {
 	 * @param participationId 신청 취소할 참가 ID
 	 * @param userId 참가신청 취소할 유저 ID
 	 */
-	public async deleteMeetingParticipation(
-		participationId: number,
-		userId: string
-	): Promise<Boolean> {
+	public async deleteMeetingParticipation( participationId: number, userId: string ): Promise<Boolean> {
 		try {
 			const result = await this.meetingMapper.deleteMeetingParticipation(
 				participationId,

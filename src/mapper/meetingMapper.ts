@@ -15,7 +15,8 @@ export default class meetingMapper {
         endAt: params.endAt,
         deadline: params.deadline,
         maxParticipant: params.maxParticipant,
-        place: params.place }
+        place: params.place };
+      console.log(param);
       const query = await mybatisMapper.getStatement('meetingMapper', 'createMeeting', param);
       const result = await mysql.transaction((con: any) => con.query(query))();
       return result[0].affectedRows;

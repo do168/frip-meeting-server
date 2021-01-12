@@ -1,4 +1,5 @@
 export interface meetingPostParam {
+  host: string;
   title: string;
   content: string;
   startAt: string;
