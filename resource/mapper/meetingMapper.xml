@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="meetingMapper">  
-  <select id="getMeeting">
+  <!-- 특정 모임 데이터 조회 -->
+  <select id="getMeeting" resultType="meetingDto">
     SELECT
       *
     FROM
@@ -10,6 +11,7 @@
       id = #{id}
   </select>
 
+  <!-- 특정 호스트의 등록 모임 조회 -->
   <select id="listHostMeetings">
     SELECT
       *
@@ -17,18 +19,20 @@
       meeting
     WHERE
       hostId = #{hostId}
-    LIMIT #{offset}, #{pageSize}
+    LIMIT ${offset}, ${pageSize}
   </select>
 
-  <select id="listMeetings">
+  <!-- 전체 모임 조회 -->
+  <select id="listMeetings" parameterType="int">
     select
       *
     FROM
       meeting  
-    LIMIT #{offset}, #{pageSize}
+    LIMIT ${offset}, ${pageSize}
   </select>
 
-  <select id="createMeeting">
+  <!-- 모임 등록 -->
+  <insert id="createMeeting">
     insert into meeting(
       title,
       content,
@@ -47,14 +51,52 @@
       #{maxParticipant},
       #{place}
     )
-  </select>
-
-  <select id="deleteMeeting">
+  </insert>
+  <!-- 모임 삭제-->
+  <update id="deleteMeeting">
     update 
       meeting
     set 
       status = 0
     where 
       id = #{id}
-  </select>
+  </update>
+
+  <!-- 모임 수정 -->
+  <update id="updateMeeting">
+    update
+      meeting
+    set
+      title = #{title},
+      content = #{content},
+      startAt = #{startAt},
+      endAt = #{endAt},
+      deadline = #{deadline},
+      maxParticipant = #{maxParticipant},
+      place = #{place}
+    where
+      id = #{id}
+  </update>
+
+  <!-- 모임 참가 -->
+  <insert id="createMeetingParticipation">
+    insert into participatesMeeting(
+      meetingId,
+      userId
+    )
+    values(
+      ${id},
+      #{userId}
+    )
+  </insert>
+
+  <!-- 모임 참가 취소-->
+  <update id="deleteMeetingParticipation">
+    update 
+      meeting
+    set
+      status = 0
+    where 
+      id = #{id}
+  </update>
 </mapper>

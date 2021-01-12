@@ -7,7 +7,7 @@ export default class reviewMapper {
   constructor() {
     mybatisMapper.createMapper(['resource/mapper/reviewMapper.xml']);
   }
-  public async createReview(params: reviewPostParam): Promise<JSON> {
+  public async createReview(params: reviewPostParam): Promise<number> {
     try {
       const param = {
         meetingId: params.meetingId,
@@ -15,8 +15,8 @@ export default class reviewMapper {
         content: params.content,
          }
       const query = mybatisMapper.getStatement('reviewMapper', 'createReview', param);
-      const post = await mysql.transaction((con: any) => con.query(query))();
-      return post[0];
+      const result = await mysql.transaction((con: any) => con.query(query))();
+      return result[0].affectedRows;
     } catch (error) {
       throw error;
     }
@@ -55,26 +55,36 @@ export default class reviewMapper {
     }
   }
 
-  public async deleteReview(id: number): Promise<JSON> {
+  public async listReviews(): Promise<JSON> {
     try {
-      const param = {id: id};
-      const query = mybatisMapper.getStatement('reviewMapper', 'deleteReview', param);
-      const get = await mysql.transaction((con: any) => con.query(query))();
+      const query = mybatisMapper.getStatement('reviewMapper', 'getAllReviews');
+      const get = await mysql.connect((con: any) => con.query(query))();
       return get[0];
     } catch (error) {
       throw error;
     }
   }
 
-  public async updateReview(id: number, body: reviewPostParam): Promise<JSON> {
+  public async deleteReview(id: number): Promise<number> {
+    try {
+      const param = {id: id};
+      const query = mybatisMapper.getStatement('reviewMapper', 'deleteReview', param);
+      const result = await mysql.transaction((con: any) => con.query(query))();
+      return result[0].affectedRows;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  public async updateReview(id: number, body: reviewPostParam): Promise<number> {
     try {
       const param = {
         title: body.title, 
         content: body.content,
       };
       const query = mybatisMapper.getStatement('reviewMapper', 'updateReview', param);
-      const update = await mysql.transaction((con: any) => con.query(query))();
-      return update[0];
+      const result = await mysql.transaction((con: any) => con.query(query))();
+      return result[0].affectedRows;
     } catch (error) {
       throw error;
     }

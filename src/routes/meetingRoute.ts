@@ -12,21 +12,21 @@ import serviceUtil from "../util/serviceUtil";
  *    type: object
  *    properties:
  *      host:
- *         type: string
- *      title:
- *         type: string
+ *        type: string
  *      content:
- *         type: string
+ *        type: string
+ *      title:
+ *        type: string
  *      startAt:
- *         type: string
+ *        type: string
  *      endAt:
- *         type: string
+ *        type: string
  *      deadline:
- *         type: string
+ *        type: string
  *      maxParticipant:
- *         type: number
+ *        type: number
  *      place:
- *         type: string
+ *        type: string
  */
 
 const router = Router();
@@ -38,11 +38,11 @@ const meetingPageScale = 10;
 
 /**
  * @swagger
- *  /meetings?pageNum=value:
+ *  /meetings:
  *    get:
  *      tags:
  *      - Meeting
- *      description: 전체 모임글 리스트를 가져온다.
+ *      description: 전체 모임글 리스트를 가져온다. query에 host를 추가해 host별 미팅 모임글 리스트를 가져올 수 있다.
  *      produces:
  *      - applicaion/json
  *      parameters:
@@ -50,6 +50,11 @@ const meetingPageScale = 10;
  *        type: number
  *        in: query
  *        description: "페이지 번호"
+ *        required: true
+ *      - name: hostId
+ *        type: string
+ *        in: query
+ *        description: "호스트 ID"
  *      responses:
  *       200:
  *        description: board of all meeting list
@@ -58,8 +63,9 @@ const meetingPageScale = 10;
 
 router.get("/", async (req: Request, res: Response) => {
 	try {
-		const pageNum = Number(req.query.pageNum);
-		const allMeetingList = await meetingServiceInstance.listMeetings(pageNum);
+    const hostId = String(req.query.hostId);
+    const pageNum = Number(req.query.pageNum);
+		const allMeetingList = await meetingServiceInstance.listMeetings(hostId, pageNum);
 		res.send(allMeetingList).status(200);
 	} catch (error) {
 		console.log(error);
@@ -100,44 +106,6 @@ router.get("/:id", async (req: Request, res: Response) => {
 
 /**
  * @swagger
- *  /meetings?host_id=value&pageNum=value
- *    get:
- *      tags:
- *      - Meeting
- *      description: 특정 호스트의 모임 등록 리스트를 가져온다.
- *      produces:
- *      - applicaion/json
- *      parameters:
- *      - name: hostId
- *        type: string
- *        in: path
- *        description: "호스트 ID"
- *      - name: pageNum
- *        type: number
- *        in: path
- *        description: "페이지 번호"
- *      responses:
- *       200:
- *        description: board of the host's meeting list
- *        schema:
- */
-router.get("/", async (req: Request, res: Response) => {
-	try {
-		const hostId = String(req.query.hostId);
-		const pageNum = Number(req.query.pageNum);
-		const hostMeetingList = await meetingServiceInstance.listHostMeetings(
-			hostId,
-			pageNum
-		);
-		res.send(hostMeetingList).status(200);
-	} catch (error) {
-		console.log(error);
-		res.send({ Error: error.message }).status(400);
-	}
-});
-
-/**
- * @swagger
  *  /meetings:
  *    post:
  *      tags:
@@ -147,7 +115,6 @@ router.get("/", async (req: Request, res: Response) => {
  *      - applicaion/json
  *      parameters:
  *      - in: body
- *        name: meetingPostParam
  *        schema:
  *          $ref: '#/definitions/meetingPostParam'
  *      responses:
@@ -236,7 +203,7 @@ router.put("/:id", async (req: Request, res: Response) => {
 
 /**
  * @swagger
- *  /meetings/{id}/participations?user_id=value:
+ *  /meetings/{id}/participations:
  *    post:
  *      tags:
  *      - Meeting
@@ -248,10 +215,15 @@ router.put("/:id", async (req: Request, res: Response) => {
  *        name: id
  *        type: number
  *        description: "미팅 ID"
- *      - in : query
- *        name: user_id
- *        type: string
+ *      - name: userId
+ *        in: body
  *        description: "참가 신청 유저 ID"
+ *        schema:
+ *          type: object
+ *          properties:
+ *            userId:
+ *              type: string
+ *        required: true
  *      responses:
  *       200:
  *        description: 
@@ -261,8 +233,9 @@ router.put("/:id", async (req: Request, res: Response) => {
 router.post("/:id/participations", async (req: Request, res: Response) => {
 	try {
     const param = Number(req.params.id);
-    const query = String(req.query.user_id);
-    const result = await meetingServiceInstance.createMeetingParticipation( param, query );
+    const body = req.body.userId;
+    console.log(param, body);
+    const result = await meetingServiceInstance.createMeetingParticipation( param, body );
 		return res.json(result).status(201);
 	} catch (error) {
 		console.log(error);
@@ -272,7 +245,7 @@ router.post("/:id/participations", async (req: Request, res: Response) => {
 
 /**
  * @swagger
- *  /meetings/{id}/participations/{participation_id}?user_id=value:
+ *  /meetings/{id}/participations/{participatios_id}:
  *    delete:
  *      tags:
  *      - Meeting
@@ -280,15 +253,15 @@ router.post("/:id/participations", async (req: Request, res: Response) => {
  *      produces:
  *      - applicaion/json
  *      parameters:
- *      - name: id
+ *      - in: path
+ *        name: id
  *        type: number
- *        in: path
  *        description: "미팅 ID"
- *       - name: participation_id
+ *      - in: path
+ *        name: participation_id
  *        type: number
- *        in: path
  *        description: "참가 신청 ID"
- *       - in : query
+ *      - in: query
  *        name: user_id
  *        type: string
  *        description: "참가 신청 유저 ID"

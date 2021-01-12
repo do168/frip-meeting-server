@@ -22,6 +22,7 @@ export class App {
   }
 
   public middleware(): void {
+    this.express.use(express.json());
     this.express.use(swaggerRoute);
   }
 

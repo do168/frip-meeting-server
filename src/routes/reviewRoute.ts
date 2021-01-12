@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import reviewMapper from "../mapper/reviewMapper";
 import reviewService from "../services/reviewService";
+import serviceUtil from "../util/serviceUtil";
 /**
  * @swagger
  * tags:
@@ -20,7 +21,8 @@ import reviewService from "../services/reviewService";
 
 const router = Router();
 const reviewMapperInstance = new reviewMapper();
-const reviewServiceInstance = new reviewService(reviewMapperInstance);
+const serviceUtilInstance = new serviceUtil();
+const reviewServiceInstance = new reviewService(reviewMapperInstance, serviceUtilInstance);
 
 /**
  * @swagger
@@ -55,70 +57,40 @@ router.get("/:id", async (req: Request, res: Response) => {
 
 /**
  * @swagger
- *  /reviews?meeting_id=value&pageNum=value:
+ *  /reviews:
  *    get:
  *      tags:
- *      - Review
- *      description: 특정 모임의 리뷰 리스트를 가져온다
+ *      - Meeting
+ *      description: 전체 fㅣ뷰글 리스트를 가져온다. query에 따라 모임별 리뷰나 유저별 리뷰를 가져올 수 있다
  *      produces:
  *      - applicaion/json
  *      parameters:
- *      - name: meetingId
- *        type: string
- *        in: query
- *        description: "미팅 아이디"
  *      - name: pageNum
  *        type: number
  *        in: query
  *        description: "페이지 번호"
- *      responses:
- *       200:
- *        description: review list of the meetingId
- *        schema:
- */
-
-router.get("/:meetingId", async (req: Request, res: Response) => {
-	try {
-		const meetingId = Number(req.query.meetingId);
-		const pageNum = Number(req.query.pageNuM);
-		const listMeetingReview = await reviewServiceInstance.listMeetingReviews( meetingId, pageNum );
-		res.send(listMeetingReview).status(200);
-	} catch (error) {
-		console.log(error);
-		res.send({ Error: error.message }).status(400);
-	}
-});
-
-/**
- * @swagger
- *  /reviews?user_id=value&pageNum=value:
- *    get:
- *      tags:
- *      - Review
- *      description: 특정 유저의 후기 리스트를 가져온다
- *      produces:
- *      - applicaion/json
- *      parameters:
+ *        required: true
+ *      - name: meetingId
+ *        type: number
+ *        in: query
+ *        description: "호스트 ID"
  *      - name: userId
  *        type: string
  *        in: query
- *        description: "유저 아이디"
- *      - name: pageNum
- *        type: number
- *        in: query
- *        description: "페이지 번호"
+ *        description: "유저 ID"
  *      responses:
  *       200:
- *        description: review list of the userId
+ *        description: board of all meeting list
  *        schema:
  */
 
-router.get("/:userId", async (req: Request, res: Response) => {
+router.get("/", async (req: Request, res: Response) => {
 	try {
-    const id = String(req.query.id);
-    const pageNum = Number(req.query.pageNum);
-    const listUserReviews = await reviewServiceInstance.listUserReviews(id, pageNum);
-		return res.json(listUserReviews).status(200);
+		const meetingId = Number(req.query.meetingId);
+		const userId = String(req.query.userId);
+		const pageNum = Number(req.query.pageNuM);
+		const listMeetingReview = await reviewServiceInstance.listReviews( meetingId, userId, pageNum );
+		res.send(listMeetingReview).status(200);
 	} catch (error) {
 		console.log(error);
 		res.send({ Error: error.message }).status(400);

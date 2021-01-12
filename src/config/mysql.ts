@@ -22,7 +22,7 @@ export class Mysql {
     /* DB 커넥션을 한다. */
     const con: any = await pool.getConnection();
     /* 트렌젝션 시작 */
-    await con.connection.beginTransaction();
+    await con.beginTransaction();
     /* 비지니스 로직에 con을 넘겨준다. */
     const result = await fn(con, ...args).catch(async (error: any) => {
       /* rollback을 진행한다. */

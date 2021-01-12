@@ -1,6 +1,7 @@
 import { meetingPostParam } from "../model/input/meetingPostParam";
 import meetingMapper from "../mapper/meetingMapper";
 import serviceUtil from "../util/serviceUtil";
+import { meetingDto } from "../model/meetingDto";
 
 // 전체 미팅 목록 페이지 크기
 const PAGE = 10;
@@ -16,9 +17,20 @@ export default class meetingService {
 		this.serviceUtil = serviceUtil;
 	}
 
-	public async createMeeting(param: meetingPostParam): Promise<JSON> {
+	/**
+	 * 	
+	 * @param param 미팅 파라미터 [제목, 내용, 시작시간, 종료시간, 마감시간, 참가최대인원, 장소]
+	 * @return True if OK
+	 *         else False
+	 */
+	public async createMeeting(param: meetingPostParam): Promise<Boolean> {
 		try {
-			return await this.meetingMapper.createMeeting(param);
+			const result = await this.meetingMapper.createMeeting(param);
+			if (result < 1) {
+				return false;
+			} else {
+				return true;
+			}
 		} catch (error) {
 			throw error;
 		}
@@ -30,7 +42,7 @@ export default class meetingService {
 	 * @return MeetingDto
 	 * @thorws Exception
 	 */
-	public async getMeeting(id: number): Promise<JSON> {
+	public async getMeeting(id: number): Promise<meetingDto> {
 		try {
 			const result = await this.meetingMapper.getMeeting(id);
 			return result;
@@ -40,54 +52,107 @@ export default class meetingService {
 	}
 
 	/**
-	 *
-	 * @param hostId
+	 * 모임 조회 서비스 - 호스트 ID의 유무에 따라 필터로 검색한다
+	 * @param hostId 호스트 ID
+	 * @param pageNum 페이지 번호
 	 */
-	public async listHostMeetings(hostId: string, pageNum: number): Promise<JSON> {
+	public async listMeetings(hostId: string, pageNum: number): Promise<JSON> {
+		const offset = this.serviceUtil.caculateOffset(pageNum, PAGE);
+		// hostId가 값이 없는 경우 전체 모임을 조회한다
+		if (this.serviceUtil.isEmpty(hostId)) {
+			try {
+				return await this.meetingMapper.listMeetings(offset, PAGE);
+			} catch (error) {
+				throw error;
+			}
+		}
+		// hostId가 값이 있는 경우 해당 호스트의 모임을 조회한다.
+		else {
+			try {
+				return await this.meetingMapper.listHostMeetings(
+					hostId,
+					offset,
+					PAGE_HOST
+				);
+			} catch (error) {
+				throw error;
+			}
+		}
+	}
+
+	/**
+	 * 미팅 삭제 서비스
+	 * @param id 삭제할 미팅 ID
+	 */
+	public async deleteMeeting(id: number): Promise<Boolean> {
 		try {
-			const offset = this.serviceUtil.caculateOffset(pageNum, PAGE_HOST);
-			return await this.meetingMapper.listHostMeetings(hostId, offset, PAGE_HOST);
+			const result = await this.meetingMapper.deleteMeeting(id);
+			if (result < 1) {
+				return false;
+			} else {
+				return true;
+			}
 		} catch (error) {
 			throw error;
 		}
 	}
 
-	public async listMeetings(pageNum: number): Promise<JSON> {
+	public async updateMeeting(
+		id: number,
+		body: meetingPostParam
+	): Promise<Boolean> {
 		try {
-			const offset = this.serviceUtil.caculateOffset(pageNum, PAGE);
-			return await this.meetingMapper.listMeetings(offset, PAGE);
+			const result = await this.meetingMapper.updateMeeting(id, body);
+			if (result < 1) {
+				return false;
+			} else {
+				return true;
+			}
 		} catch (error) {
 			throw error;
 		}
 	}
 
-	public async deleteMeeting(id: number): Promise<JSON> {
+	/**
+	 * 모임 참가 신청 서비스
+	 * @param id 참가할 모임 ID
+	 * @param userId 참가하는 유저 ID
+	 */
+	public async createMeetingParticipation( id: number, userId: string): Promise<Boolean> {
 		try {
-			return await this.meetingMapper.deleteMeeting(id);
+			const result = await this.meetingMapper.createMeetingParticipation(
+				id,
+				userId
+			);
+			if (result < 1) {
+				return false;
+			} else {
+				return true;
+			}
 		} catch (error) {
 			throw error;
 		}
 	}
 
-	public async updateMeeting(id: number, body: meetingPostParam): Promise<JSON> {
+	/**
+	 * 참가신청 취소 서비스
+	 * @param participationId 신청 취소할 참가 ID
+	 * @param userId 참가신청 취소할 유저 ID
+	 */
+	public async deleteMeetingParticipation(
+		participationId: number,
+		userId: string
+	): Promise<Boolean> {
 		try {
-			return await this.meetingMapper.updateMeeting(id, body);
-		} catch (error) {
-			throw error;
-		}
-	}
-
-	public async createMeetingParticipation(id: number, userId: string): Promise<JSON> {
-		try {
-			return await this.meetingMapper.createMeetingParticipation(id, userId);
-		} catch (error) {
-			throw error;
-		}
-	}
-
-	public async deleteMeetingParticipation(participationId: number, userId: string): Promise<JSON> {
-		try {
-			return await this.meetingMapper.deleteMeetingParticipation(participationId, userId);
+			const result = await this.meetingMapper.deleteMeetingParticipation(
+				participationId,
+				userId
+			);
+			if (result < 1) {
+				return false;
+			} else {
+				return true;
+			}
 		} catch (error) {
 			throw error;
 		}
