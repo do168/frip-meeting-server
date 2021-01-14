@@ -250,7 +250,7 @@ router.post(
  */
 
 router.delete(
-  '/:id/participations/{participation_id}',
+  '/:id/participations/:participationId',
   wrap(async (req: Request, res: Response, next: NextFunction) => {
     const participationId = Number(req.params.participationId);
     const userId = String(req.query.userId);
