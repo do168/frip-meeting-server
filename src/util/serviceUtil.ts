@@ -1,6 +1,6 @@
 import { NullException } from './customException';
 
-export default class serviceUtil {
+export default class ServiceUtil {
   /**
    * 페이지 번호와 지정된 페이지 크기를 이용하여 Offset 계산
    * @param pageNum 페이지 번호

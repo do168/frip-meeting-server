@@ -2,7 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { wrap } from './wrap';
 import reviewMapper from '../mapper/reviewMapper';
 import reviewService from '../services/reviewService';
-import serviceUtil from '../util/serviceUtil';
+import ServiceUtil from '../util/serviceUtil';
 import { ReviewPostParam } from '../model/input/ReviewPostParam';
 import meetingMapper from '../mapper/meetingMapper';
 /**
@@ -26,7 +26,7 @@ import meetingMapper from '../mapper/meetingMapper';
 
 const router = Router();
 // DI
-const serviceUtilInstance = new serviceUtil();
+const serviceUtilInstance = new ServiceUtil();
 const reviewMapperInstance = new reviewMapper(serviceUtilInstance);
 const meetingMapperInstance = new meetingMapper(serviceUtilInstance);
 const reviewServiceInstance = new reviewService(meetingMapperInstance, reviewMapperInstance, serviceUtilInstance);

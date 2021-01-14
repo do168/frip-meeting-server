@@ -2,7 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { wrap } from './wrap';
 import meetingService from '../services/meetingService';
 import meetingMapper from '../mapper/meetingMapper';
-import serviceUtil from '../util/serviceUtil';
+import ServiceUtil from '../util/serviceUtil';
 import { MeetingPostParam } from '../model/input/MeetingPostParam';
 /**
  * @swagger
@@ -33,7 +33,7 @@ import { MeetingPostParam } from '../model/input/MeetingPostParam';
 
 const router = Router();
 // DI
-const serviceUtilInstance = new serviceUtil();
+const serviceUtilInstance = new ServiceUtil();
 const meetingMapperInstance = new meetingMapper(serviceUtilInstance);
 const meetingServiceInstance = new meetingService(meetingMapperInstance, serviceUtilInstance);
 

@@ -1,7 +1,7 @@
 import { MeetingPostParam } from '../model/input/MeetingPostParam';
 import { Meeting } from '../model/Meeting';
 import meetingMapper from '../mapper/meetingMapper';
-import serviceUtil from '../util/serviceUtil';
+import ServiceUtil from '../util/serviceUtil';
 import {
   NullException,
   NotExistsException,
@@ -17,10 +17,10 @@ const PAGE_HOST = 5;
 
 export default class meetingService {
   meetingMapper: meetingMapper;
-  serviceUtil: serviceUtil;
+  serviceUtil: ServiceUtil;
 
   // DI
-  constructor(meetingMapper: meetingMapper, serviceUtil: serviceUtil) {
+  constructor(meetingMapper: meetingMapper, serviceUtil: ServiceUtil) {
     this.meetingMapper = meetingMapper;
     this.serviceUtil = serviceUtil;
   }

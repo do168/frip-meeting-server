@@ -1,7 +1,7 @@
 import { ReviewPostParam } from '../model/input/ReviewPostParam';
 import { Review } from '../model/Review';
 import reviewMapper from '../mapper/reviewMapper';
-import serviceUtil from '../util/serviceUtil';
+import ServiceUtil from '../util/serviceUtil';
 import { NullException, NotExistsException, ReviewConditionException } from '../util/customException';
 import meetingMapper from '../mapper/meetingMapper';
 
@@ -13,9 +13,9 @@ const PAGE_USER = 5;
 export default class reviewService {
   meetingMapper: meetingMapper;
   reviewMapper: reviewMapper;
-  serviceUtil: serviceUtil;
+  serviceUtil: ServiceUtil;
   // DI
-  constructor(meetingMapper: meetingMapper, reviewMapper: reviewMapper, serviceUtil: serviceUtil) {
+  constructor(meetingMapper: meetingMapper, reviewMapper: reviewMapper, serviceUtil: ServiceUtil) {
     this.meetingMapper = meetingMapper;
     this.reviewMapper = reviewMapper;
     this.serviceUtil = serviceUtil;

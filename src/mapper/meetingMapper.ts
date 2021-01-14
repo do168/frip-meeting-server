@@ -2,12 +2,12 @@ import mybatisMapper from 'mybatis-mapper';
 import { Mysql as mysql } from '../config/mysql';
 import { MeetingPostParam } from '../model/input/MeetingPostParam';
 import { Meeting } from '../model/Meeting';
-import serviceUtil from '../util/serviceUtil';
+import ServiceUtil from '../util/serviceUtil';
 
 export default class meetingMapper {
   // DI
-  serviceUtil: serviceUtil;
-  constructor(serviceUtil: serviceUtil) {
+  serviceUtil: ServiceUtil;
+  constructor(serviceUtil: ServiceUtil) {
     mybatisMapper.createMapper(['resource/mapper/meetingMapper.xml']);
     this.serviceUtil = serviceUtil;
   }

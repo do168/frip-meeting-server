@@ -2,11 +2,11 @@ import mybatisMapper from 'mybatis-mapper';
 import { Mysql as mysql } from '../config/mysql';
 import { ReviewPostParam } from '../model/input/ReviewPostParam';
 import { Review } from '../model/Review';
-import serviceUtil from '../util/serviceUtil';
+import ServiceUtil from '../util/serviceUtil';
 
 export default class reviewMapper {
-  serviceUtil: serviceUtil;
-  constructor(serviceUtil: serviceUtil) {
+  serviceUtil: ServiceUtil;
+  constructor(serviceUtil: ServiceUtil) {
     mybatisMapper.createMapper(['resource/mapper/reviewMapper.xml']);
     this.serviceUtil = serviceUtil;
   }
