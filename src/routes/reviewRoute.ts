@@ -87,7 +87,7 @@ router.get(
   wrap(async (req: Request, res: Response, next: NextFunction) => {
     const meetingId = Number(req.query.meetingId);
     const userId = String(req.query.userId);
-    const pageNum = Number(req.query.pageNuM);
+    const pageNum = Number(req.query.pageNum);
     const result = await reviewServiceInstance.listReviews(meetingId, userId, pageNum);
     return res.status(result.status).json(result.message);
   }),

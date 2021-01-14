@@ -237,11 +237,11 @@ router.post(
  *        type: number
  *        description: "미팅 ID"
  *      - in: path
- *        name: participation_id
+ *        name: participationId
  *        type: number
  *        description: "참가 신청 ID"
  *      - in: query
- *        name: user_id
+ *        name: userId
  *        type: string
  *        description: "참가 신청 유저 ID"
  *      responses:
@@ -252,8 +252,8 @@ router.post(
 router.delete(
   '/:id/participations/{participation_id}',
   wrap(async (req: Request, res: Response, next: NextFunction) => {
-    const participationId = Number(req.params.participation_id);
-    const userId = String(req.query.user_id);
+    const participationId = Number(req.params.participationId);
+    const userId = String(req.query.userId);
     const result = await meetingServiceInstance.deleteMeetingParticipation(participationId, userId);
     return res.status(result.status).json(result.message);
   }),
