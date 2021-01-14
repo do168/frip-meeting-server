@@ -4,7 +4,10 @@
   <!-- 특정 리뷰 데이터 조회 -->
   <select id="getReview">
     SELECT
-      *
+      userId,
+      title,
+      content,
+      updatedAt
     FROM
       review
     WHERE
@@ -15,7 +18,10 @@
   <!-- TODO: 리턴 어떤 칼럼 줄건지 생각하자-->
   <select id="listMeetingReviews">
     SELECT
-      *
+      userId,
+      title,
+      content,
+      updatedAt
     FROM
       review
     WHERE
@@ -26,7 +32,10 @@
   <!-- 특정 유저의 리뷰 히스토리 조회 -->
   <select id="listUserReviews">
     select
-      *
+      userId,
+      title,
+      content,
+      updatedAt
     FROM
       review
     WHERE
@@ -37,7 +46,10 @@
   <!-- 모든 리뷰 리스트-->
   <select id="listReviews">
     select
-      *
+      userId,
+      title,
+      content,
+      updatedAt
     FROM
       review
     WHERE

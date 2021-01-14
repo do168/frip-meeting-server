@@ -1,7 +1,6 @@
 import { App } from '../src/App';
 import request from 'supertest';
 import { createSchema } from './schemaUtils';
-import config from 'config';
 
 const app = new App();
 app.run(4080);
@@ -38,14 +37,7 @@ describe('Test get /meetings', () => {
 describe('Test post /meetings', () => {
   test('register meeting with correct params -> should return ok', async (done) => {
     const res = await request(app.express).post('/meetings').send({
-      hostId: 'testid',
-      title: '미팅생성',
-      content: '미팅이 생성됐습니다. 테스트가 잘 진행될까 궁금하다',
-      startAt: '2009-01-03 12:33:33',
-      endAt: '2009-01-04 12:33:33',
-      deadline: '2009-01-02 12:33:33',
-      maxParticipant: 4,
-      place: '울산 중구 태화동',
+      meetingPostParam
     });
     expect(res.body).toBe('모임 생성 완료!');
     expect(res.status).toBe(201);

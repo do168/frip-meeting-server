@@ -4,7 +4,22 @@
   <!-- 특정 모임 데이터 조회 -->
   <select id="getMeeting">
     SELECT
-      *
+      id,
+      hostId,
+      title,
+      content,
+      startAt,
+      endAt,
+      deadline,
+      updatedAt,
+      maxParticipant,
+      place,
+      updatedAt,
+      (SELECT 
+        count(*)
+      FROM
+        participatesMeeting
+      WHERE meetingId = #{id}) as currentParticipant   
     FROM
       meeting
     WHERE
@@ -97,21 +112,42 @@
   <!-- 모임 참가 취소-->
   <update id="deleteMeetingParticipation">
     update 
-      meeting
+      participatesMeeting
     set
       status = 0
     where 
-      id = #{id}
+      meetingId = #{id} and userId = #{userId}
+  </update>
+
+  <!-- 모임 출석 체크-->
+  <update id="updateMeetingAttendance">
+    update 
+      participatesMeeting
+    set
+      attendance = 0
+    where 
+      meetingId = #{id} and userId = #{userId}
   </update>
 
   <!-- 모임 참가 신청 인원 -->
-  <select id="selectCntMeetingParticipant">
+  <select id="getCntMeetingParticipant">
     select
       count(*) as CntMeetingParticipant
     FROM
       participatesMeeting
     where
       meetingId = #{meetingId} and status = 1
+    limit 0, 1000;
+  </select>
+
+  <!-- 리뷰를 달기 위한 조건으로 -->
+  <select id="getAttendance">
+    select
+      attendance
+    FROM
+      participatesMeeting
+    where
+      meetingId = #{meetingId} and userId = #{userId} and status = 1
     limit 0, 1000;
   </select>
 </mapper>

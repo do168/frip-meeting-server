@@ -39,11 +39,18 @@ export class App {
       });
     });
 
-    // 500 internal error handling
+    // error handling
     this.express.use((err: any, req: Request, res: Response, next: NextFunction) => {
       console.error(err.stack);
       console.error(err.message);
-      res.status(500).send({ status: 500, message: 'internal error', type: 'internal' });
+      if (err.name == 'Client') {
+        return res.status(400).json({
+          message: err.message,
+          type: 'External Client Error',
+        });
+      } else {
+        res.status(500).json({ message: 'internal error', type: 'internal' });
+      }
     });
   }
 }

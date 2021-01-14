@@ -10,7 +10,7 @@ import { MeetingPostParam } from '../model/input/MeetingPostParam';
  *  name: Meeting
  *  description: Meeting CRUD
  * definitions:
- *  meetingPostParam:
+ *  MeetingPostParam:
  *    type: object
  *    properties:
  *      hostId:
@@ -32,6 +32,7 @@ import { MeetingPostParam } from '../model/input/MeetingPostParam';
  */
 
 const router = Router();
+// DI
 const serviceUtilInstance = new serviceUtil();
 const meetingMapperInstance = new meetingMapper(serviceUtilInstance);
 const meetingServiceInstance = new meetingService(meetingMapperInstance, serviceUtilInstance);
@@ -66,7 +67,7 @@ router.get(
     const hostId = String(req.query.hostId);
     const pageNum = req.query.pageNum ? Number(req.query.pageNum) : 1;
     const result = await meetingServiceInstance.listMeetings(hostId, pageNum);
-    res.status(result.status).send(result.message);
+    res.json({ result });
   }),
 );
 
@@ -94,7 +95,7 @@ router.get(
   wrap(async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
     const result = await meetingServiceInstance.getMeeting(id);
-    return res.status(result.status).json(result.message);
+    return res.json({ result });
   }),
 );
 
@@ -109,9 +110,9 @@ router.get(
  *      - applicaion/json
  *      parameters:
  *      - in: body
- *        name: meetingPostParam
+ *        name: Meeting
  *        schema:
- *          $ref: '#/definitions/meetingPostParam'
+ *          $ref: '#/definitions/MeetingPostParam'
  *      responses:
  *       200:
  */
@@ -121,7 +122,7 @@ router.post(
   wrap(async (req: Request, res: Response, next: NextFunction) => {
     const meetingInfo = req.body as MeetingPostParam;
     const result = await meetingServiceInstance.createMeeting(meetingInfo);
-    return res.status(result.status).json(result.message);
+    return res.status(201).json({ result });
   }),
 );
 
@@ -149,7 +150,7 @@ router.delete(
   wrap(async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
     const result = await meetingServiceInstance.deleteMeeting(id);
-    return res.status(result.status).json(result.message);
+    return res.json({ result });
   }),
 );
 
@@ -168,9 +169,9 @@ router.delete(
  *        type: number
  *        description: "미팅 ID"
  *      - in: body
- *        name: meetingPostParam
+ *        name: Meeting
  *        schema:
- *          $ref: '#/definitions/meetingPostParam'
+ *          $ref: '#/definitions/MeetingPostParam'
  *      responses:
  *       200:
  */
@@ -181,22 +182,22 @@ router.put(
     const id = Number(req.params.id);
     const meetingInfo = req.body as MeetingPostParam;
     const result = await meetingServiceInstance.updateMeeting(id, meetingInfo);
-    return res.status(result.status).json(result.message);
+    return res.json({ result });
   }),
 );
 
 /**
  * @swagger
- *  /meetings/{id}/participations:
+ *  /meetings/{id}/users:
  *    post:
  *      tags:
  *      - Meeting
- *      description: 미팅 참가 신청 api
+ *      description: 미팅 참가 신청 api - maxParticipation보다 신청한 인원 수가 적거나 deadline 전까지만 신청 가능하다
  *      produces:
  *      - applicaion/json
  *      parameters:
  *      - in: path
- *        name: id
+ *        name: userId
  *        type: number
  *        description: "미팅 ID"
  *      - name: userId
@@ -213,22 +214,22 @@ router.put(
  */
 
 router.post(
-  '/:id/participations',
+  '/:id/users',
   wrap(async (req: Request, res: Response, next: NextFunction) => {
     const id = Number(req.params.id);
     const userId = req.body.userId;
     const result = await meetingServiceInstance.createMeetingParticipation(id, userId);
-    return res.status(result.status).json(result.message);
+    return res.status(201).json({ result });
   }),
 );
 
 /**
  * @swagger
- *  /meetings/{id}/participations/{participatios_id}:
+ *  /meetings/{id}/users/{userId}:
  *    delete:
  *      tags:
  *      - Meeting
- *      description: 미팅 참가 신청 취소 api
+ *      description: 미팅 참가 신청 취소 api - deadline 전까지만 취소 가능하다.
  *      produces:
  *      - applicaion/json
  *      parameters:
@@ -237,10 +238,6 @@ router.post(
  *        type: number
  *        description: "미팅 ID"
  *      - in: path
- *        name: participationId
- *        type: number
- *        description: "참가 신청 ID"
- *      - in: query
  *        name: userId
  *        type: string
  *        description: "참가 신청 유저 ID"
@@ -250,12 +247,44 @@ router.post(
  */
 
 router.delete(
-  '/:id/participations/:participationId',
+  '/:id/users/:userId',
   wrap(async (req: Request, res: Response, next: NextFunction) => {
-    const participationId = Number(req.params.participationId);
-    const userId = String(req.query.userId);
-    const result = await meetingServiceInstance.deleteMeetingParticipation(participationId, userId);
-    return res.status(result.status).json(result.message);
+    const id = Number(req.params.id);
+    const userId = String(req.params.userId);
+    const result = await meetingServiceInstance.deleteMeetingParticipation(id, userId);
+    return res.json({ result });
+  }),
+);
+
+/**
+ * @swagger
+ *  /meetings/{id}/users/{userId}:
+ *    put:
+ *      tags:
+ *      - Meeting
+ *      description: 출석 체크 api - 모임 startAt 30분 후부터 가능하다.
+ *      produces:
+ *      - applicaion/json
+ *      parameters:
+ *      - in: path
+ *        name: id
+ *        type: number
+ *        description: "미팅 ID"
+ *      - in: path
+ *        name: userId
+ *        type: string
+ *        description: "참가 신청 유저 ID"
+ *      responses:
+ *       200:
+ *        description: soft delete success
+ */
+router.put(
+  '/:id/users/:userId',
+  wrap(async (req: Request, res: Response, next: NextFunction) => {
+    const id = Number(req.params.id);
+    const userId = String(req.params.userId);
+    const result = await meetingServiceInstance.updateMeetingAttendance(id, userId);
+    return res.json({ result });
   }),
 );
 

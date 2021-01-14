@@ -1,4 +1,4 @@
-import { ReturnModel } from '../model/ReturnModel';
+import { NullException } from './customException';
 
 export default class serviceUtil {
   /**
@@ -23,6 +23,7 @@ export default class serviceUtil {
       value == undefined ||
       value == String(undefined) ||
       value == Number(undefined) ||
+      isNaN(value) ||
       (value != null && typeof value == 'object' && !Object.keys(value).length)
     ) {
       return true;
@@ -32,32 +33,27 @@ export default class serviceUtil {
   }
 
   // 객체의 속성 중 빈 값 체크
-  public isEmptyPostParam(obj: any, keys: any): boolean {
+  public isEmptyPostParam(obj: any, keys: any): void {
     for (let key in keys) {
       if (this.isEmpty(obj[keys[key]])) {
-        return true;
+        throw new NullException(keys[key]);
       }
     }
-    return false;
   }
 
-  /**
-   * 서비스계층에서 return 시 ReturnModel 인터페이스 타입으로 리턴
-   * @param status http 상태코드
-   * @param message 리턴 메세지
-   */
-  public returnMethod(status: number, message: any): ReturnModel {
-    const model = {
-      status: status,
-      message: message,
-    };
-    return model;
+  public isBeforeTime(comparing: number, standard: number, conditionTime: number): boolean {
+    if (standard - comparing >= conditionTime) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
-  // parse a date in yyyy-mm-dd format
-  public parseDate(input: string): Date {
-    const parts = input.split('-');
-    // new Date(year, month [, day [, hours[, minutes[, seconds[, ms]]]]])
-    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])); // Note: months are 0-based
+  public isAfterTime(comparing: number, standard: number, conditionTime: number): boolean {
+    if (comparing - standard > conditionTime) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }

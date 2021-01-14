@@ -1,5 +1,4 @@
-// 모임 등록 parameter 인터페이스
-export interface MeetingPostParam {
+export interface Meeting {
   hostId: string;
   title: string;
   content: string;
@@ -8,4 +7,6 @@ export interface MeetingPostParam {
   deadline: string;
   maxParticipant: number;
   place: string;
+  updatedAt: string;
+  currentParticipant: number;
 }

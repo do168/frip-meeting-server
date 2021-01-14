@@ -1,7 +1,7 @@
 import mybatisMapper from 'mybatis-mapper';
 import { Mysql as mysql } from '../config/mysql';
 import { MeetingPostParam } from '../model/input/MeetingPostParam';
-import { meetingDto } from '../model/meetingDto';
+import { Meeting } from '../model/Meeting';
 import serviceUtil from '../util/serviceUtil';
 
 export default class meetingMapper {
@@ -13,7 +13,7 @@ export default class meetingMapper {
   }
 
   // insert
-  public async createMeeting(meetingInfo: MeetingPostParam): Promise<number> {
+  public async createMeeting(meetingInfo: MeetingPostParam): Promise<Array<Number>> {
     const param = {
       hostId: meetingInfo.hostId,
       title: meetingInfo.title,
@@ -26,47 +26,52 @@ export default class meetingMapper {
     };
     const query = await mybatisMapper.getStatement('meetingMapper', 'createMeeting', param);
     const result = await mysql.transaction((con: any) => con.query(query))();
-    return result[0].affectedRows;
+    return [result[0].affectedRows, result[0].insertId];
   }
 
+  /* select query 시 리턴 값은
+  [ [ TextRow { }], ... ,] 라서 get 함수에서는 result[0][0]을
+  list 함수에서는 result[0]을 리턴한다.
+  */
+
   // select
-  public async getMeeting(id: number): Promise<meetingDto> {
-    const param = { id: id };
+  public async getMeeting(id: number): Promise<Meeting> {
+    const param = { id };
     const query = mybatisMapper.getStatement('meetingMapper', 'getMeeting', param);
-    const get = await mysql.connect((con: any) => con.query(query))();
-    return get[0];
+    const result = await mysql.connect((con: any) => con.query(query))();
+    return result[0][0];
   }
 
   // select
-  public async listHostMeetings(hostId: string, pageNum: number, pageSize: number): Promise<JSON> {
+  public async listHostMeetings(hostId: string, pageNum: number, pageSize: number): Promise<Array<Meeting>> {
     const offset = this.serviceUtil.caculateOffset(pageNum, pageSize);
-    const param = { hostId: hostId, offset: offset, pageSize: pageSize };
+    const param = { hostId, offset, pageSize };
     const query = mybatisMapper.getStatement('meetingMapper', 'listHostMeetings', param);
-    const list = await mysql.connect((con: any) => con.query(query))();
-    return list[0];
+    const result = await mysql.connect((con: any) => con.query(query))();
+    return result[0];
   }
 
   // select
-  public async listMeetings(pageNum: number, pageSize: number): Promise<JSON> {
+  public async listMeetings(pageNum: number, pageSize: number): Promise<Array<Meeting>> {
     const offset = this.serviceUtil.caculateOffset(pageNum, pageSize);
-    const param = { offset: offset, pageSize: pageSize };
+    const param = { offset, pageSize };
     const query = mybatisMapper.getStatement('meetingMapper', 'listMeetings', param);
-    const list = await mysql.connect((con: any) => con.query(query))();
-    return list[0];
+    const result = await mysql.connect((con: any) => con.query(query))();
+    return result[0];
   }
 
   // delete
-  public async deleteMeeting(id: number): Promise<number> {
-    const param = { id: id };
+  public async deleteMeeting(id: number): Promise<Number> {
+    const param = { id };
     const query = mybatisMapper.getStatement('meetingMapper', 'deleteMeeting', param);
     const result = await mysql.transaction((con: any) => con.query(query))();
     return result[0].affectedRows[0];
   }
 
   // update
-  public async updateMeeting(id: number, meetingInfo: MeetingPostParam): Promise<number> {
+  public async updateMeeting(id: number, meetingInfo: MeetingPostParam): Promise<Number> {
     const param = {
-      id: id,
+      id,
       title: meetingInfo.title,
       content: meetingInfo.content,
       startAt: meetingInfo.startAt,
@@ -82,26 +87,42 @@ export default class meetingMapper {
   }
 
   // insert
-  public async createMeetingParticipation(id: number, userId: string): Promise<number> {
-    const param = { id: id, userId: userId };
+  public async createMeetingParticipation(id: number, userId: string): Promise<Array<Number>> {
+    const param = { id, userId };
     const query = await mybatisMapper.getStatement('meetingMapper', 'createMeetingParticipation', param);
     const result = await mysql.transaction((con: any) => con.query(query))();
-    return result[0].affectedRows;
+    return [result[0].affectedRows, result[0].insertId];
   }
 
   // delete
-  public async deleteMeetingParticipation(participationId: number, userId: string): Promise<number> {
-    const param = { id: participationId, userId: userId };
+  public async deleteMeetingParticipation(id: number, userId: string): Promise<Number> {
+    const param = { meetingId: id, userId };
     const query = mybatisMapper.getStatement('meetingMapper', 'deleteMeetingParticipation', param);
     const result = await mysql.transaction((con: any) => con.query(query))();
     return result[0].affectedRows[0];
   }
 
-  // select
-  public async getCntMeetingParticipant(id: number): Promise<number> {
+  // update - 출석 체크
+  public async updateMeetingAttendance(id: number, userId: string): Promise<Number> {
+    const param = { meetingId: id, userId };
+    const query = mybatisMapper.getStatement('meetingMapper', 'updateMeetingAttendance', param);
+    const result = await mysql.transaction((con: any) => con.query(query))();
+    return result[0].affectedRows[0];
+  }
+
+  // select 현재 참가 신청 인원
+  public async getCntMeetingParticipant(id: number): Promise<Number> {
     const param = { meetingId: id };
-    const query = mybatisMapper.getStatement('meetingMapper', 'selectCntMeetingParticipant', param);
+    const query = mybatisMapper.getStatement('meetingMapper', 'getCntMeetingParticipant', param);
     const result = await mysql.connect((con: any) => con.query(query))();
-    return result[0];
+    return result[0][0];
+  }
+
+  // select 리뷰 조건 검사
+  public async isAttendee(id: number, userId: string): Promise<Boolean> {
+    const param = { meetingId: id, userId };
+    const query = mybatisMapper.getStatement('meetingMapper', 'getAttendance', param);
+    const result = await mysql.connect((con: any) => con.query(query))();
+    return result[0][0] == 1;
   }
 }
