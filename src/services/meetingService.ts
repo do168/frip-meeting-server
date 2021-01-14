@@ -67,6 +67,9 @@ export default class meetingService {
    * @return Array<Meeting>
    */
   public async listMeetings(hostId: string, pageNum: number): Promise<Array<Meeting>> {
+    if (this.serviceUtil.isEmpty(pageNum)) {
+      throw new NullException('pageNum');
+    }
     // hostId가 값이 없는 경우 전체 모임을 조회한다
     if (this.serviceUtil.isEmpty(hostId)) {
       const result = await this.meetingMapper.listMeetings(pageNum, PAGE);

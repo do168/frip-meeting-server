@@ -47,3 +47,13 @@ export class ReviewConditionException extends Error {
     this.status = 400;
   }
 }
+
+export class NotFoundException extends Error {
+  status: number;
+  constructor() {
+    super('Not found');
+    this.name = 'Client';
+    this.stack = Error().stack;
+    this.status = 404;
+  }
+}

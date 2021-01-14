@@ -4,6 +4,8 @@ import morgan from 'morgan';
 import swaggerRoute from './middleware/swaggerRoute';
 import meetingRoute from './routes/meetingRoute';
 import reviewRoute from './routes/reviewRoute';
+import { handleError } from './util/errorUtil';
+import { NotFoundException } from './util/customException';
 
 export class App {
   public express: express.Application;
@@ -34,23 +36,10 @@ export class App {
 
     // 404 error handling
     this.express.use((req: Request, res: Response, next: NextFunction) => {
-      return res.status(404).json({
-        message: 'Not Found',
-      });
+      next(new NotFoundException());
     });
 
     // error handling
-    this.express.use((err: any, req: Request, res: Response, next: NextFunction) => {
-      console.error(err.stack);
-      console.error(err.message);
-      if (err.name == 'Client') {
-        return res.status(400).json({
-          message: err.message,
-          type: 'External Client Error',
-        });
-      } else {
-        res.status(500).json({ message: 'internal error', type: 'internal' });
-      }
-    });
+    this.express.use(handleError);
   }
 }

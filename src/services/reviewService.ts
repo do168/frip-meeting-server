@@ -68,6 +68,10 @@ export default class reviewService {
    * @return Array<Review>
    */
   public async listReviews(meetingId: number, userId: string, pageNum: number): Promise<Array<Review>> {
+    // pageNum 빈 값 체크
+    if (this.serviceUtil.isEmpty(pageNum)) {
+      throw new NullException('pageNum');
+    }
     // user 필터 리뷰 리스트
     if (this.serviceUtil.isEmpty(meetingId) && !this.serviceUtil.isEmpty(userId)) {
       const result = await this.reviewMapper.listUserReviews(userId, pageNum, PAGE_USER);

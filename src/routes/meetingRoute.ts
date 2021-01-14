@@ -65,7 +65,7 @@ router.get(
   '/',
   wrap(async (req: Request, res: Response, next: NextFunction) => {
     const hostId = String(req.query.hostId);
-    const pageNum = req.query.pageNum ? Number(req.query.pageNum) : 1;
+    const pageNum = Number(req.query.pageNum);
     const result = await meetingServiceInstance.listMeetings(hostId, pageNum);
     res.json({ result });
   }),
