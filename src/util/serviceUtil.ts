@@ -23,7 +23,6 @@ export default class ServiceUtil {
       value == undefined ||
       value == String(undefined) ||
       value == Number(undefined) ||
-      isNaN(value) ||
       (value != null && typeof value == 'object' && !Object.keys(value).length)
     ) {
       return true;

@@ -1,7 +1,12 @@
 import { createPool } from 'mysql2/promise';
-import { dbConfig } from '../config/dbconfig';
+import { dbConfig, dbConfigTest } from '../config/dbconfig';
 
-const pool = createPool(dbConfig);
+let pool: any = null;
+if (process.env.NODE_ENV === 'dev') {
+  pool = createPool(dbConfig);
+} else if (process.env.NODE_ENV === 'test') {
+  pool = createPool(dbConfigTest);
+}
 
 export class Mysql {
   public static connect = (fn: any) => async (...args: any) => {
