@@ -1,9 +1,11 @@
 import { ReviewPostParam } from '../model/input/ReviewPostParam';
 import { Review } from '../model/Review';
-import reviewMapper from '../mapper/reviewMapper';
+import reviewRepository from '../repository/reviewRepository';
 import ServiceUtil from '../util/serviceUtil';
 import { NullException, NotExistsException, ReviewConditionException } from '../util/customException';
-import meetingMapper from '../mapper/meetingMapper';
+import meetingRepository from '../repository/meetingRepository';
+import { PostReturn } from '../model/PostReturn';
+import { Page } from '../model/Page';
 
 // pageSize - 파라미터로 받을지 고민
 const PAGE = 10;
@@ -11,11 +13,11 @@ const PAGE_MEETING = 5;
 const PAGE_USER = 5;
 
 export default class reviewService {
-  meetingMapper: meetingMapper;
-  reviewMapper: reviewMapper;
-  serviceUtil: ServiceUtil;
+  private meetingMapper: meetingRepository;
+  private reviewMapper: reviewRepository;
+  private serviceUtil: ServiceUtil;
   // DI
-  constructor(meetingMapper: meetingMapper, reviewMapper: reviewMapper, serviceUtil: ServiceUtil) {
+  constructor(meetingMapper: meetingRepository, reviewMapper: reviewRepository, serviceUtil: ServiceUtil) {
     this.meetingMapper = meetingMapper;
     this.reviewMapper = reviewMapper;
     this.serviceUtil = serviceUtil;
@@ -26,19 +28,15 @@ export default class reviewService {
    * @param param Review [meetingId, userId, title, content]
    * @return [ afftectedRow, insertId ]
    */
-  public async createReview(reviewInfo: ReviewPostParam): Promise<Array<Number>> {
+  public async createReview(condition: boolean, reviewInfo: ReviewPostParam): Promise<PostReturn> {
     // reviewInfo 빈값 체크
-    this.serviceUtil.isEmptyPostParam(reviewInfo, Object.keys(reviewInfo));
-
-    // 리뷰 조건 검사. attendance 값을 이용해 판별한다.
-    const reviewCondition = await this.meetingMapper.isAttendee(reviewInfo.meetingId, reviewInfo.userId);
-    if (!reviewCondition) {
+    this.serviceUtil.checkEmptyPostParam(reviewInfo, Object.keys(reviewInfo));
+    if (!condition) {
       throw new ReviewConditionException();
     }
-
     const result = await this.reviewMapper.createReview(reviewInfo);
     // affectedRow가 1이 아닌 경우 에러 리턴
-    if (result[0] != 1) {
+    if (result.affectedRows != 1) {
       throw new NotExistsException();
     } else {
       return result;
@@ -67,24 +65,22 @@ export default class reviewService {
    * @param pageNum 페이지 번호
    * @return Array<Review>
    */
-  public async listReviews(meetingId: number, userId: string, pageNum: number): Promise<Array<Review>> {
-    // pageNum 빈 값 체크
-    if (this.serviceUtil.isEmpty(pageNum)) {
-      throw new NullException('pageNum');
-    }
+  public async listReviews(meetingId: number, userId: string, page: Page): Promise<Array<Review>> {
+    // page 빈 값 체크
+    this.serviceUtil.checkEmptyPostParam(page, Object.keys(page));
     // user 필터 리뷰 리스트
     if (this.serviceUtil.isEmpty(meetingId) && !this.serviceUtil.isEmpty(userId)) {
-      const result = await this.reviewMapper.listUserReviews(userId, pageNum, PAGE_USER);
+      const result = await this.reviewMapper.listUserReviews(userId, page);
       return result;
     }
     // meeting 필터 리뷰 리스트
     else if (!this.serviceUtil.isEmpty(meetingId) && this.serviceUtil.isEmpty(userId)) {
-      const result = await this.reviewMapper.listMeetingReviews(meetingId, pageNum, PAGE_MEETING);
+      const result = await this.reviewMapper.listMeetingReviews(meetingId, page);
       return result;
     }
     // 전체 리뷰 리스트
     else {
-      const result = await this.reviewMapper.listReviews(pageNum, PAGE);
+      const result = await this.reviewMapper.listReviews(page);
       return result;
     }
   }
@@ -120,7 +116,7 @@ export default class reviewService {
       throw new NullException('id');
     }
     // reviewInfo 빈 값 체크
-    this.serviceUtil.isEmptyPostParam(reviewInfo, Object.keys(reviewInfo));
+    this.serviceUtil.checkEmptyPostParam(reviewInfo, Object.keys(reviewInfo));
 
     const result = await this.reviewMapper.updateReview(id, reviewInfo);
     // affectedRow가 1이 아닌 경우 에러 리턴

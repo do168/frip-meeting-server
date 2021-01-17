@@ -8,7 +8,7 @@ import { handleError } from './util/errorUtil';
 import { NotFoundException } from './util/customException';
 
 export class App {
-  public express: express.Application;
+  private express: express.Application;
   private httpServer: http.Server | null = null;
   constructor() {
     this.express = express();
@@ -41,5 +41,9 @@ export class App {
 
     // error handling
     this.express.use(handleError);
+  }
+
+  public getExpress(): express.Application {
+    return this.express;
   }
 }

@@ -86,6 +86,12 @@ VALUES ('UserSecond', '2222', '유저 테스트 계정 2');
 INSERT INTO `frip`.`user` (`id`, `password`, `nickname`)
 VALUES ('UserThird', '3333', '유저 테스트 계정 3');
 
+INSERT INTO `frip`.`meeting` (`hostId`, `title`, `content`, `startAt`, `endAt`, `deadline`, `maxParticipant`, `place`)
+VALUES ('HostFirst', '사전입력모임', '사전으로 입력된 모임입니다. 날짜, 시간관련 테스트를 위한 데이터입니다.', '2021-01-15 12:33:33', '2021-01-16 12:33:33',
+'2009-01-02 12:33:33', 2, '헤이그라운드');
+
+INSERT INTO `frip`.`participatesMeeting` (`meetingId`, `userId`)
+VALUES (1, 'UserFirst');
 
 -- INSERT INTO `meeting` (`id`, `name`, `sort`)
 -- VALUES (29, '등산', 0),

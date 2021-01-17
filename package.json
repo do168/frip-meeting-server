@@ -4,9 +4,9 @@
   "description": "ToyProject",
   "main": "index.js",
   "scripts": {
-    "test": "jest --detectOpenHandles --forceExit",
+    "test": "NODE_ENV=test jest --detectOpenHandles --forceExit",
     "build": "rm -rf dist/* && tsc -p .",
-    "dev": "nodemon ./src/server.ts",
+    "dev": "NODE_ENV=development nodemon ./src/server.ts",
     "local": "NODE_ENV=local ts-node src/server.ts",
     "start": "tsc; node ./dist/server.js -i 0",
     "prod": "npm run build && npm run start",

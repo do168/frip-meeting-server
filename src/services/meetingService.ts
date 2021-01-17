@@ -1,6 +1,6 @@
 import { MeetingPostParam } from '../model/input/MeetingPostParam';
 import { Meeting } from '../model/Meeting';
-import meetingMapper from '../mapper/meetingMapper';
+import meetingRepository from '../repository/meetingRepository';
 import ServiceUtil from '../util/serviceUtil';
 import {
   NullException,
@@ -8,19 +8,16 @@ import {
   TimeLimitException,
   FullParticipationException,
 } from '../util/customException';
-
-// pageSize - 파라미터로 받을지 고민
-// 전체 미팅 목록 페이지 크기
-const PAGE = 10;
-// 호스트별 미팅 목록 페이지 크기
-const PAGE_HOST = 5;
+import { PostReturn } from '../model/PostReturn';
+import { ReviewPostParam } from '../model/input/ReviewPostParam';
+import { Page } from '../model/Page';
 
 export default class meetingService {
-  meetingMapper: meetingMapper;
-  serviceUtil: ServiceUtil;
+  private meetingMapper: meetingRepository;
+  private serviceUtil: ServiceUtil;
 
   // DI
-  constructor(meetingMapper: meetingMapper, serviceUtil: ServiceUtil) {
+  constructor(meetingMapper: meetingRepository, serviceUtil: ServiceUtil) {
     this.meetingMapper = meetingMapper;
     this.serviceUtil = serviceUtil;
   }
@@ -30,13 +27,14 @@ export default class meetingService {
    * @param param 미팅 파라미터 [제목, 내용, 시작시간, 종료시간, 마감시간, 참가최대인원, 장소]
    * @return [ affectedRow, insertId ]
    */
-  public async createMeeting(meetingInfo: MeetingPostParam): Promise<Array<Number>> {
+  public async createMeeting(meetingInfo: MeetingPostParam): Promise<PostReturn> {
     // meetingInfo 빈 값 체크
-    this.serviceUtil.isEmptyPostParam(meetingInfo, Object.keys(meetingInfo));
+    this.serviceUtil.checkEmptyPostParam(meetingInfo, Object.keys(meetingInfo));
 
     const result = await this.meetingMapper.createMeeting(meetingInfo);
     // affectedRow가 1이 아닌 경우 에러 리턴
-    if (result[0] != 1) {
+    if (result.affectedRows != 1) {
+      console.log(result.affectedRows);
       throw new NotExistsException();
     } else {
       console.log('성공!');
@@ -66,18 +64,18 @@ export default class meetingService {
    * @param pageNum 페이지 번호
    * @return Array<Meeting>
    */
-  public async listMeetings(hostId: string, pageNum: number): Promise<Array<Meeting>> {
-    if (this.serviceUtil.isEmpty(pageNum)) {
-      throw new NullException('pageNum');
-    }
+  public async listMeetings(hostId: string, page: Page): Promise<Array<Meeting>> {
+    // 빈값 체크
+    this.serviceUtil.checkEmptyPostParam(page, Object.keys(page));
+
     // hostId가 값이 없는 경우 전체 모임을 조회한다
     if (this.serviceUtil.isEmpty(hostId)) {
-      const result = await this.meetingMapper.listMeetings(pageNum, PAGE);
+      const result = await this.meetingMapper.listMeetings(page);
       return result;
     }
     // hostId가 값이 있는 경우 해당 호스트의 모임을 조회한다.
     else {
-      const result = await this.meetingMapper.listHostMeetings(hostId, pageNum, PAGE_HOST);
+      const result = await this.meetingMapper.listHostMeetings(hostId, page);
       return result;
     }
   }
@@ -114,7 +112,7 @@ export default class meetingService {
     }
 
     // meetinginfo 속성 null 체크
-    this.serviceUtil.isEmptyPostParam(meetingInfo, Object.keys(meetingInfo));
+    this.serviceUtil.checkEmptyPostParam(meetingInfo, Object.keys(meetingInfo));
 
     const result = await this.meetingMapper.updateMeeting(id, meetingInfo);
     // affectedRow가 1이 아닌 경우 에러 리턴
@@ -131,16 +129,16 @@ export default class meetingService {
    * @param userId 참가하는 유저 ID
    * @return [ affectedRow, insertId ]
    */
-  public async createMeetingParticipation(id: number, userId: string): Promise<Array<Number>> {
+  public async createMeetingParticipation(id: number, userId: string): Promise<PostReturn> {
     // id 빈 값 체크
     if (this.serviceUtil.isEmpty(id)) {
       throw new NullException('id');
     }
-
     // userId 빈 값 체크
     if (this.serviceUtil.isEmpty(userId)) {
       throw new NullException('userId');
     }
+
     // 참가인원 수가 최대 참가 가능 인원 수보다 작아야 하고, deadline보다 전에만 신청할 수 있다.
     const resultMeetingInfo = await this.meetingMapper.getMeeting(id);
     if (!this.serviceUtil.isBeforeTime(Number(new Date()), Number(resultMeetingInfo.deadline), 0)) {
@@ -149,13 +147,13 @@ export default class meetingService {
 
     // 참가인원 수가 최대 참가 가능 인원 수보다 적어야 한다.
     const cntCurrentParticipant = await this.meetingMapper.getCntMeetingParticipant(id);
-    if (cntCurrentParticipant == Number(resultMeetingInfo.maxParticipant)) {
+    if (cntCurrentParticipant >= Number(resultMeetingInfo.maxParticipant)) {
       throw new FullParticipationException();
     }
-
     const result = await this.meetingMapper.createMeetingParticipation(id, userId);
+
     // affectedRow가 1이 아닌 경우 에러 리턴
-    if (result[0] != 1) {
+    if (result.affectedRows != 1) {
       throw new NotExistsException();
     } else {
       return result;
@@ -223,5 +221,19 @@ export default class meetingService {
     } else {
       return result;
     }
+  }
+
+  public async checkReviewCondition(reviewInfo: ReviewPostParam): Promise<boolean> {
+    // 리뷰 조건 검사 1. 미팅 참가 신청한 유저인지 판별한다.
+    const isMeetingParticipant = await this.meetingMapper.isParticipant(reviewInfo.meetingId, reviewInfo.userId);
+    if (!isMeetingParticipant) {
+      return false;
+    }
+    // 리뷰 조건 검사 2. attendance 값을 이용해 판별한다.
+    const isMeetingAttendance = await this.meetingMapper.isAttendee(reviewInfo.meetingId, reviewInfo.userId);
+    if (!isMeetingAttendance) {
+      return false;
+    }
+    return true;
   }
 }

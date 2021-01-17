@@ -1,11 +1,13 @@
 import { App } from '../src/App';
 import request from 'supertest';
 import { createSchema } from './schemaUtils';
+import { NullException } from '../src/util/customException';
 
 const app = new App();
 app.run(4080);
+const express = app.getExpress();
 
-const meetingPostParam = {
+const meetingPostParamWithDeadlinePast = {
   hostId: 'HostFirst',
   title: '미팅생성테스트. Test에 올라가나요?',
   content: '미팅이 생성됐습니다. 테스트가 잘 진행될까 궁금하다',
@@ -13,6 +15,17 @@ const meetingPostParam = {
   endAt: '2009-01-04 12:33:33',
   deadline: '2009-01-02 12:33:33',
   maxParticipant: 4,
+  place: '울산 중구 태화동',
+};
+
+const meetingPostParam = {
+  hostId: 'HostFirst',
+  title: '미팅생성테스트. Test에 올라가나요?',
+  content: '미팅이 생성됐습니다. 테스트가 잘 진행될까 궁금하다',
+  startAt: '2021-01-19 12:33:33',
+  endAt: '2021-01-19 12:33:33',
+  deadline: '2021-01-19 12:33:33',
+  maxParticipant: 2,
   place: '울산 중구 태화동',
 };
 
@@ -38,6 +51,28 @@ const meetingPostParamWithDifferentType = {
   place: '울산 중구 태화동',
 };
 
+const meetingPostParamWithQuote = {
+  hostId: 'HostFirst',
+  title: "'따옴표' 포함된 생성테스트. Test에 올라가나요?",
+  content: '미팅이 생성됐습니다. 테스트가 잘 진행될까 궁금하다',
+  startAt: '2021-01-19 12:33:33',
+  endAt: '2021-01-19 12:33:33',
+  deadline: '2021-01-19 12:33:33',
+  maxParticipant: 4,
+  place: '울산 중구 태화동',
+};
+
+const meetingPostParamUpdate = {
+  hostId: 'HostFirst',
+  title: "'따옴표' 포함된 생성테스트. Test에 올라가나요?",
+  content: '미팅이 생성됐습니다. 테스트가 잘 진행될까 궁금하다',
+  startAt: '2021-12-19 12:33:33',
+  endAt: '2021-12-19 12:33:33',
+  deadline: '2021-01-19 12:33:33',
+  maxParticipant: 4,
+  place: '울산 중구 태화동',
+};
+
 const reviewPostParam = {
   meetingId: 1,
   userId: 'UserFirst',
@@ -45,38 +80,246 @@ const reviewPostParam = {
   content: '리뷰가 잘 생성되나 궁금하네요',
 };
 
+const reviewPostParamUpdate = {
+  meetingId: 1,
+  userId: 'UserFirst',
+  title: '리뷰생성테스트 - 업데이트용',
+  content: '리뷰가 잘 생성되나 궁금하네요. 잘 바꼈을까요',
+};
+
+const reviewPostParamWithNull = {
+  meetingId: 1,
+  userId: 'UserFirst',
+  title: '',
+  content: '리뷰가 잘 생성되나 궁금하네요',
+};
+
+const reviewPostParamWithNoParticipant = {
+  meetingId: 1,
+  userId: 'UserSecond',
+  title: '모임에 참가하지 않은 사람이나 생성되면 안됩니다',
+  content: '리뷰가 잘 생성되나 궁금하네요',
+};
+
+// DB 생성
 beforeAll(async () => {
   await createSchema();
 });
 
-// 모임 등록 테스트
+// 모임 등록 테스트 1
 describe('Test post /meetings', () => {
   test('register meeting with correct params -> should return ok', async (done) => {
-    const res = await request(app.express).post('/meetings').send(meetingPostParam);
+    const res = await request(express).post('/meetings').send(meetingPostParam);
     expect(res.status).toBe(201);
 
     done();
   });
 });
 
-// 등록 파라미터 중 일부가 null 값인 경우
+// 모임 등록 테스트 2 - 등록날짜 옛날 버전
 describe('Test post /meetings', () => {
-  test('register meeting with incorrect params -> should return Bad Request', async (done) => {
-    const res = await request(app.express).post('/meetings').send(meetingPostParamWithNull);
+  test('register meeting with correct params, deadline with past date -> should return ok', async (done) => {
+    const res = await request(express).post('/meetings').send(meetingPostParamWithDeadlinePast);
+    expect(res.status).toBe(201);
+
+    done();
+  });
+});
+
+// 모임 등록 테스트 3 - 따옴표 포함 - 디비 결과 확인하자
+describe('Test post /meetings', () => {
+  test('register meeting with correct params(include Quotes) -> should return ok', async (done) => {
+    const res = await request(express).post('/meetings').send(meetingPostParamWithQuote);
+    expect(res.status).toBe(201);
+
+    done();
+  });
+});
+
+// 모임 수정 테스트  - 4번 미팅 - 디비 결과 확인하자
+describe('Test put /meetings/4', () => {
+  test('update meeting with correct params -> should return ok', async (done) => {
+    const res = await request(express).put('/meetings/4').send(meetingPostParamUpdate);
+    // expect(res.body).toStrictEqual({});
+    expect(res.status).toBe(200);
+    done();
+  });
+});
+
+// 모임 수정 테스트 - Null Exception
+describe('Test put /meetings/', () => {
+  test('update meeting with incorrect params -> should return Bad Reqeust', async (done) => {
+    const res = await request(express).put('/meetings').send(meetingPostParam);
+    expect(res.status).toBe(404);
+    done();
+  });
+});
+
+// 모임 수정 테스트 - 수정할 param 중 null이 포함된 경우
+describe('Test put /meetings/4', () => {
+  test('update meeting with Null Value params -> should return Bad Reqeust', async (done) => {
+    const res = await request(express).put('/meetings/4').send(meetingPostParamWithNull);
+    expect(res.status).toBe(400);
+    done();
+  });
+});
+
+// 특정 모임 가져오기 테스트 - 정상
+describe('Test get /meetings/1', () => {
+  test('get meetingId meeting with correct params -> should return ok', async (done) => {
+    const res = await request(express).get('/meetings/1');
+    expect(res.status).toBe(200);
+    // expect(res.body).toStrictEqual({
+    //   // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
+    //   result: {
+    //     deadline: '2009-01-02T03:33:33.000Z',
+    //     content: '사전으로 입력된 모임입니다. 날짜, 시간관련 테스트를 위한 데이터입니다.',
+    //     currentParticipant: 1,
+    //     endAt: '2021-01-16T03:33:33.000Z',
+    //     hostId: 'HostFirst',
+    //     id: 1,
+    //     title: '사전입력모임',
+    //     maxParticipant: 2,
+    //     place: '헤이그라운드',
+    //     startAt: '2021-01-15T03:33:33.000Z',
+    //     updatedAt: '2021-01-17T05:04:39.000Z',
+    //   },
+    // });
+    done();
+  });
+});
+
+// 특정 모임 가져오기 테스트 - Null Exception - path가 undefined 인 경우
+describe('Test get /meetings/undefined', () => {
+  test('get meetingId meeting with incorrect params -> should return Bad Request', async (done) => {
+    const res = await request(express).get('/meetings/');
+    expect(res.status).toBe(400);
+    done();
+  });
+});
+
+// 전체 모임 가져오기 테스트 - 정상
+describe('Test get /meetings?hostId=&pageNum=1&pageSize=3', () => {
+  test('get meeting list with correct params -> should return ok', async (done) => {
+    const res = await request(express).get('/meetings?hostId=&pageNum=1&pageSize=3');
+    expect(res.status).toBe(200);
+    expect(res.body).toStrictEqual({
+      // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
+      result: [
+        {
+          deadline: '2009-01-02T03:33:33.000Z',
+          id: 1,
+          title: '사전입력모임',
+        },
+        {
+          id: 2,
+          title: '미팅생성테스트. Test에 올라가나요?',
+          deadline: '2021-01-19T03:33:33.000Z',
+        },
+        {
+          deadline: '2009-01-02T03:33:33.000Z',
+          id: 3,
+          title: '미팅생성테스트. Test에 올라가나요?',
+        },
+      ],
+    });
+    done();
+  });
+});
+
+// 전체 모임 가져오기 테스트 - 총 meeting 수 : 4 , pageNum = 2, pageSize = 3 으로 하여 하나만 리턴되는지 확인
+describe('Test get /meetings?hostId=&pageNum=2&pageSize=3', () => {
+  test('get meeting list with correct params -> should return ok', async (done) => {
+    const res = await request(express).get('/meetings?hostId=&pageNum=2&pageSize=3');
+    expect(res.status).toBe(200);
+    expect(res.body).toStrictEqual({
+      // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
+      result: [
+        {
+          deadline: '2021-01-19T03:33:33.000Z',
+          id: 4,
+          title: "'따옴표' 포함된 생성테스트. Test에 올라가나요?",
+        },
+      ],
+    });
+    done();
+  });
+});
+
+// 특정 호스트의 모임 가져오기 테스트 - 정상
+describe('Test get /meetings?hostId=HostFirst&pageNum=1&pageSize=2', () => {
+  test('get meeting list with correct params -> should return ok', async (done) => {
+    const res = await request(express).get('/meetings?hostId=HostFirst&pageNum=1&pageSize=2');
+    expect(res.status).toBe(200);
+    expect(res.body).toStrictEqual({
+      // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
+      result: [
+        {
+          deadline: '2009-01-02T03:33:33.000Z',
+          id: 1,
+          title: '사전입력모임',
+        },
+        {
+          id: 2,
+          title: '미팅생성테스트. Test에 올라가나요?',
+          deadline: '2021-01-19T03:33:33.000Z',
+        },
+      ],
+    });
+    done();
+  });
+});
+
+// 특정 호스트의 모임 가져오기 테스트 - Null Exception - pageNum이 Null일 때 테스트
+describe('Test get /meetings?hostId=HostFirst&pageNum=&pageSize=2', () => {
+  test('get meeting list with incorrect params -> should return Bad Requesst', async (done) => {
+    const res = await request(express).get('/meetings?hostId=HostFirst&pageNum=&pageSize=2');
     expect(res.status).toBe(400);
     expect(res.body).toStrictEqual({
       // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
-      message: 'title cannot be null',
+      message: 'pageNum cannot be null',
       type: 'External Client Error',
     });
     done();
   });
 });
 
+// 특정 호스트의 모임 가져오기 테스트 - Null Exception - pageSize이 Null일 때 테스트
+describe('Test get /meetings?hostId=HostFirst&pageNum=1&pageSize=', () => {
+  test('get meeting list with incorrect params -> should return Bad Requesst', async (done) => {
+    const res = await request(express).get('/meetings?hostId=HostFirst&pageNum=1&pageSize=');
+    expect(res.status).toBe(400);
+    expect(res.body).toStrictEqual({
+      // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
+      message: 'pageSize cannot be null',
+      type: 'External Client Error',
+    });
+    done();
+  });
+});
+
+// 모임 취소 테스트 - Null Exception
+describe('Test delete /meetings/undefined', () => {
+  test('delete meeting with Null Value params -> should return Bad Reqeust', async (done) => {
+    const res = await request(express).delete('/meetings/');
+    expect(res.status).toBe(404);
+    done();
+  });
+});
+
+// 모임 취소 테스트 - 정상
+describe('Test delete /meetings/4', () => {
+  test('delete meeting with correct params -> should return OK', async (done) => {
+    const res = await request(express).delete('/meetings/4');
+    expect(res.status).toBe(200);
+    done();
+  });
+});
+
 // 등록 파라미터 중 날짜를 나타내는 파라미터의 타입이 다른 경우 - 이 경우는 프론트에서 처리해서 줘야할듯싶다.
 describe('Test post /meetings', () => {
-  test('register meeting with params of different type -> should return Bad Request', async (done) => {
-    const res = await request(app.express).post('/meetings').send(meetingPostParamWithDifferentType);
+  test('register meeting with params of different type -> should return 500', async (done) => {
+    const res = await request(express).post('/meetings').send(meetingPostParamWithDifferentType);
     expect(res.status).toBe(500);
     expect(res.body).toStrictEqual({
       // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
@@ -87,35 +330,178 @@ describe('Test post /meetings', () => {
   });
 });
 
-// 특정 호스트의 모임 가져오기 테스트
-describe('Test get /meetings?hostId=HostFirst&pageNum=1', () => {
-  test('get meeting list with correct params -> should return ok', async (done) => {
-    const res = await request(app.express).get('/meetings?hostId=HostFirst&pageNum=1');
-    expect(res.status).toBe(200);
+// 미팅 참가 신청 테스트 - 정상
+describe('Test post /meetings/2/users', () => {
+  test('insert meeting participation with correct params -> should return ok', async (done) => {
+    const res = await request(express).post('/meetings/2/users').send({ userId: 'UserSecond' });
+    expect(res.status).toBe(201);
+    done();
+  });
+});
+
+describe('Test post /meetings/2/users', () => {
+  test('insert meeting participation with correct params -> should return ok', async (done) => {
+    const res = await request(express).post('/meetings/2/users').send({ userId: 'UserFirst' });
+    expect(res.status).toBe(201);
+    done();
+  });
+});
+
+// 미팅 참가 신청 테스트 - Custom Exception 마감시간이 지난 후 신청하려는 경우
+describe('Test post /meetings/3/users', () => {
+  test('insert meeting participation with unavailable condition -> should return Bad Request', async (done) => {
+    const res = await request(express).post('/meetings/3/users').send({ userId: 'UserFirst' });
+    expect(res.status).toBe(400);
     expect(res.body).toStrictEqual({
       // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
-      result: [
-        {
-          id: 1,
-          title: '미팅생성테스트. Test에 올라가나요?',
-          deadline: '2009-01-02T03:33:33.000Z',
-        },
-      ],
+      message: '마감 시간이 지났습니다',
+      type: 'External Client Error',
     });
     done();
   });
 });
 
-// pageNum이 Null일 때 테스트
-describe('Test get /meetings?hostId=HostFirst&pageNum=', () => {
-  test('register meeting with correct params -> should return ok', async (done) => {
-    const res = await request(app.express).get('/meetings?hostId=HostFirst&pageNum=');
+// 미팅 참가 신청 테스트 - Null Exception - meetingID가 null 인 경우 - 404
+describe('Test post /meetings//users', () => {
+  test('insert meeting participation with incorrect params -> should return Bad Request', async (done) => {
+    const res = await request(express).post('/meetings//users').send({ userId: 'UserFirst' });
+    expect(res.status).toBe(404);
+    done();
+  });
+});
+
+// 미팅 참가 신청 테스트 - Null Exception - userID가 null 인 경우
+describe('Test post /meetings/2/users', () => {
+  test('insert meeting participation with incorrect params -> should return Bad Request', async (done) => {
+    const res = await request(express).post('/meetings/2/users').send({});
     expect(res.status).toBe(400);
-    expect(res.body).toStrictEqual({
-      // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
-      message: 'pageNum cannot be null',
-      type: 'External Client Error',
-    });
+    done();
+  });
+});
+
+// 미팅 참가 신청 테스트 - FullParticipationException - 참가인원이 꽉 찬 경우
+describe('Test post /meetings/2/users', () => {
+  test('insert meeting participation with incorrect logic -> should return Bad Request', async (done) => {
+    const res = await request(express).post('/meetings/2/users').send({ userId: 'UserThird' });
+    expect(res.status).toBe(400);
+    done();
+  });
+});
+
+// 미팅 참가 신청 취소 테스트 - 정상적인 경우
+describe('Test delete /meetings/1/users/UserSecond', () => {
+  test('delete meeting participation with correct params and logic-> should return ok', async (done) => {
+    const res = await request(express).delete('/meetings/2/users/UserSecond');
+    expect(res.status).toBe(200);
+    done();
+  });
+});
+
+// 미팅 참가 신청 취소 테스트 - Null Exception
+describe('Test delete /meetings/2/users/', () => {
+  test('delete meeting participation with incorrect param-> should return Bad Request', async (done) => {
+    const res = await request(express).delete('/meetings/1/users/');
+    expect(res.status).toBe(404);
+    done();
+  });
+});
+
+// 미팅 참가 신청 취소 테스트 - TimeLimit Exception
+describe('Test delete /meetings/1/users/', () => {
+  test('delete meeting participation with incorrect logic-> should return Bad Request', async (done) => {
+    const res = await request(express).delete('/meetings/1/users/UserFirst');
+    expect(res.status).toBe(400);
+    done();
+  });
+});
+
+// 리뷰 등록 테스트 - 정상
+describe('Test post /reviews', () => {
+  test('post review with correct params-> should return OK', async (done) => {
+    const res = await request(express).post('/reviews').send(reviewPostParam);
+    expect(res.status).toBe(201);
+    done();
+  });
+});
+
+// 리뷰 등록 테스트 - NullException
+describe('Test post /reviews', () => {
+  test('post review with incorrect params-> should return Bad Request', async (done) => {
+    const res = await request(express).post('/reviews').send(reviewPostParamWithNull);
+    expect(res.status).toBe(400);
+    done();
+  });
+});
+
+// 리뷰 등록 테스트 - ReviewConditionException
+describe('Test post /reviews', () => {
+  test('post review with incorrect logic -> should return Bad Request', async (done) => {
+    const res = await request(express).post('/reviews').send(reviewPostParamWithNoParticipant);
+    expect(res.status).toBe(400);
+    done();
+  });
+});
+
+// 리뷰 조회 테스트 - 특정 리뷰 정상
+describe('Test get /reviews/1', () => {
+  test('post review with correct param -> should return OK', async (done) => {
+    const res = await request(express).get('/reviews/1');
+    expect(res.status).toBe(200);
+    expect(res.body.result.title).toStrictEqual('리뷰생성테스트');
+    done();
+  });
+});
+
+// 리뷰 조회 테스트 - 특정 호스트
+describe('Test get /reviews?hostId=HostFirst&pageNum=1&pageSize=2', () => {
+  test('get review with correct param -> should return OK', async (done) => {
+    const res = await request(express).get('/reviews?hostId=HostFirst&pageNum=1&pageSize=2');
+    expect(res.status).toBe(200);
+    done();
+  });
+});
+
+// 리뷰 조회 테스트 - 특정 유저
+describe('Test get /reviews?userId=UserFirst&pageNum=1&pageSize=2', () => {
+  test('get review with correct param -> should return OK', async (done) => {
+    const res = await request(express).get('/reviews?userId=UserFirst&pageNum=1&pageSize=2');
+    expect(res.status).toBe(200);
+    done();
+  });
+});
+
+// 리뷰 수정 테스트 - 정상
+describe('Test put /reviews/1', () => {
+  test('update review with correct param -> should return OK', async (done) => {
+    const res = await request(express).put('/reviews/1').send(reviewPostParamUpdate);
+    expect(res.status).toBe(200);
+    done();
+  });
+});
+
+// 리뷰 수정 테스트 - Null Exception
+describe('Test put /reviews/1', () => {
+  test('update review with incorrect param -> should return Bad Request', async (done) => {
+    const res = await request(express).put('/reviews/1').send(reviewPostParamWithNull);
+    expect(res.status).toBe(400);
+    done();
+  });
+});
+
+// 리뷰 삭제 테스트 - Null Exception
+describe('Test delete /reviews/', () => {
+  test('delete review with incorrect param -> should return Bad Request', async (done) => {
+    const res = await request(express).delete('/reviews/');
+    expect(res.status).toBe(404);
+    done();
+  });
+});
+
+// 리뷰 삭제 테스트 - 정상
+describe('Test delete /reviews/1', () => {
+  test('delete review with correct param -> should return OK', async (done) => {
+    const res = await request(express).delete('/reviews/1');
+    expect(res.status).toBe(200);
     done();
   });
 });

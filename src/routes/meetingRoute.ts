@@ -1,9 +1,10 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Request, Response } from 'express';
 import { wrap } from './wrap';
 import meetingService from '../services/meetingService';
-import meetingMapper from '../mapper/meetingMapper';
+import meetingRepository from '../repository/meetingRepository';
 import ServiceUtil from '../util/serviceUtil';
 import { MeetingPostParam } from '../model/input/MeetingPostParam';
+import { Page } from '../model/Page';
 /**
  * @swagger
  * tags:
@@ -34,7 +35,7 @@ import { MeetingPostParam } from '../model/input/MeetingPostParam';
 const router = Router();
 // DI
 const serviceUtilInstance = new ServiceUtil();
-const meetingMapperInstance = new meetingMapper(serviceUtilInstance);
+const meetingMapperInstance = new meetingRepository(serviceUtilInstance);
 const meetingServiceInstance = new meetingService(meetingMapperInstance, serviceUtilInstance);
 
 /**
@@ -52,6 +53,10 @@ const meetingServiceInstance = new meetingService(meetingMapperInstance, service
  *        in: query
  *        description: "페이지 번호"
  *        required: true
+ *      - name: pageSize
+ *        type: number
+ *        in: query
+ *        description: "페이지 크기"
  *      - name: hostId
  *        type: string
  *        in: query
@@ -63,10 +68,13 @@ const meetingServiceInstance = new meetingService(meetingMapperInstance, service
 
 router.get(
   '/',
-  wrap(async (req: Request, res: Response, next: NextFunction) => {
-    const hostId = String(req.query.hostId);
-    const pageNum = Number(req.query.pageNum);
-    const result = await meetingServiceInstance.listMeetings(hostId, pageNum);
+  wrap(async (req: Request, res: Response) => {
+    const hostId = req.query.hostId ? String(req.query.hostId) : '';
+    const page: Page = {
+      pageNum: Number(req.query.pageNum) || 0,
+      pageSize: Number(req.query.pageSize) || 0,
+    };
+    const result = await meetingServiceInstance.listMeetings(hostId, page);
     res.json({ result });
   }),
 );
@@ -92,8 +100,8 @@ router.get(
 
 router.get(
   '/:id',
-  wrap(async (req: Request, res: Response, next: NextFunction) => {
-    const id = Number(req.params.id);
+  wrap(async (req: Request, res: Response) => {
+    const id = req.params.id ? Number(req.params.id) : 0;
     const result = await meetingServiceInstance.getMeeting(id);
     return res.json({ result });
   }),
@@ -119,8 +127,17 @@ router.get(
 
 router.post(
   '/',
-  wrap(async (req: Request, res: Response, next: NextFunction) => {
-    const meetingInfo = req.body as MeetingPostParam;
+  wrap(async (req: Request, res: Response) => {
+    const meetingInfo: MeetingPostParam = {
+      hostId: req.body.hostId || '',
+      title: req.body.title || '',
+      content: req.body.content || '',
+      startAt: req.body.startAt || '',
+      endAt: req.body.endAt || '',
+      deadline: req.body.deadline || '',
+      maxParticipant: req.body.maxParticipant || 0,
+      place: req.body.place || '',
+    };
     const result = await meetingServiceInstance.createMeeting(meetingInfo);
     return res.status(201).json({ result });
   }),
@@ -147,8 +164,9 @@ router.post(
 
 router.delete(
   '/:id',
-  wrap(async (req: Request, res: Response, next: NextFunction) => {
-    const id = Number(req.params.id);
+  wrap(async (req: Request, res: Response) => {
+    const id = req.params.id ? Number(req.params.id) : 0;
+
     const result = await meetingServiceInstance.deleteMeeting(id);
     return res.json({ result });
   }),
@@ -178,9 +196,19 @@ router.delete(
 
 router.put(
   '/:id',
-  wrap(async (req: Request, res: Response, next: NextFunction) => {
-    const id = Number(req.params.id);
-    const meetingInfo = req.body as MeetingPostParam;
+  wrap(async (req: Request, res: Response) => {
+    const id = req.params.id ? Number(req.params.id) : 0;
+
+    const meetingInfo: MeetingPostParam = {
+      hostId: req.body.hostId || '',
+      title: req.body.title || '',
+      content: req.body.content || '',
+      startAt: req.body.startAt || '',
+      endAt: req.body.endAt || '',
+      deadline: req.body.deadline || '',
+      maxParticipant: req.body.maxParticipant || 0,
+      place: req.body.place || '',
+    };
     const result = await meetingServiceInstance.updateMeeting(id, meetingInfo);
     return res.json({ result });
   }),
@@ -197,7 +225,7 @@ router.put(
  *      - applicaion/json
  *      parameters:
  *      - in: path
- *        name: userId
+ *        name: id
  *        type: number
  *        description: "미팅 ID"
  *      - name: userId
@@ -215,9 +243,10 @@ router.put(
 
 router.post(
   '/:id/users',
-  wrap(async (req: Request, res: Response, next: NextFunction) => {
-    const id = Number(req.params.id);
-    const userId = req.body.userId;
+  wrap(async (req: Request, res: Response) => {
+    const id = req.params.id ? Number(req.params.id) : 0;
+
+    const userId = req.body.userId ? String(req.body.userId) : '';
     const result = await meetingServiceInstance.createMeetingParticipation(id, userId);
     return res.status(201).json({ result });
   }),
@@ -248,9 +277,11 @@ router.post(
 
 router.delete(
   '/:id/users/:userId',
-  wrap(async (req: Request, res: Response, next: NextFunction) => {
-    const id = Number(req.params.id);
-    const userId = String(req.params.userId);
+  wrap(async (req: Request, res: Response) => {
+    const id = req.params.id ? Number(req.params.id) : 0;
+
+    const userId = req.params.userId ? String(req.params.userId) : '';
+
     const result = await meetingServiceInstance.deleteMeetingParticipation(id, userId);
     return res.json({ result });
   }),
@@ -280,9 +311,10 @@ router.delete(
  */
 router.put(
   '/:id/users/:userId',
-  wrap(async (req: Request, res: Response, next: NextFunction) => {
-    const id = Number(req.params.id);
-    const userId = String(req.params.userId);
+  wrap(async (req: Request, res: Response) => {
+    const id = req.params.id ? Number(req.params.id) : 0;
+
+    const userId = req.params.userId ? String(req.params.userId) : '';
     const result = await meetingServiceInstance.updateMeetingAttendance(id, userId);
     return res.json({ result });
   }),

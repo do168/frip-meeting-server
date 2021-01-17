@@ -2,18 +2,19 @@ import { createPool } from 'mysql2/promise';
 import { dbConfig, dbConfigTest } from '../config/dbconfig';
 
 let pool: any = null;
-if (process.env.NODE_ENV === 'dev') {
+// run 환경별 디비 구성 변경
+if (process.env.NODE_ENV === 'development') {
   pool = createPool(dbConfig);
 } else if (process.env.NODE_ENV === 'test') {
   pool = createPool(dbConfigTest);
 }
 
 export class Mysql {
-  public static connect = (fn: any) => async (...args: any) => {
+  public static connect = async (sql: string, args?: any): Promise<any> => {
     /* DB 커넥션을 한다. */
     const con: any = await pool.getConnection();
     /* 로직에 con과 args(넘겨받은 paramter)를 넘겨준다. */
-    const result = await fn(con, ...args).catch((error: any) => {
+    const result = await con.query(sql, args).catch((error: any) => {
       /* 에러시 con을 닫아준다. */
       con.connection.release();
       throw error;
@@ -23,13 +24,13 @@ export class Mysql {
     return result;
   };
 
-  public static transaction = (fn: any) => async (...args: any) => {
+  public static transaction = async (sql: string, args?: any): Promise<any> => {
     /* DB 커넥션을 한다. */
     const con: any = await pool.getConnection();
     /* 트렌젝션 시작 */
     await con.beginTransaction();
     /* 비지니스 로직에 con을 넘겨준다. */
-    const result = await fn(con, ...args).catch(async (error: any) => {
+    const result = await con.query(sql, args).catch(async (error: any) => {
       /* rollback을 진행한다. */
       await con.rollback();
       /* 에러시 con을 닫아준다. */

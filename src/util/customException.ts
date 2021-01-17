@@ -11,7 +11,7 @@ export class NullException extends Error {
 export class NotExistsException extends Error {
   status: number;
   constructor() {
-    super("Parameter Error! - data dosen't exists");
+    super("Parameter Error! - data didn't inserted Or data dosen't exists");
     this.name = 'Client';
     this.stack = Error().stack;
     this.status = 400;

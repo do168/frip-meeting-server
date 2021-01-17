@@ -1,10 +1,12 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Request, Response } from 'express';
 import { wrap } from './wrap';
-import reviewMapper from '../mapper/reviewMapper';
+import reviewRepository from '../repository/reviewRepository';
 import reviewService from '../services/reviewService';
 import ServiceUtil from '../util/serviceUtil';
 import { ReviewPostParam } from '../model/input/ReviewPostParam';
-import meetingMapper from '../mapper/meetingMapper';
+import meetingMapper from '../repository/meetingRepository';
+import meetingService from '../services/meetingService';
+import { Page } from '../model/Page';
 /**
  * @swagger
  * tags:
@@ -27,8 +29,9 @@ import meetingMapper from '../mapper/meetingMapper';
 const router = Router();
 // DI
 const serviceUtilInstance = new ServiceUtil();
-const reviewMapperInstance = new reviewMapper(serviceUtilInstance);
+const reviewMapperInstance = new reviewRepository(serviceUtilInstance);
 const meetingMapperInstance = new meetingMapper(serviceUtilInstance);
+const meetingServiceInstance = new meetingService(meetingMapperInstance, serviceUtilInstance);
 const reviewServiceInstance = new reviewService(meetingMapperInstance, reviewMapperInstance, serviceUtilInstance);
 
 /**
@@ -52,8 +55,8 @@ const reviewServiceInstance = new reviewService(meetingMapperInstance, reviewMap
 
 router.get(
   '/:id',
-  wrap(async (req: Request, res: Response, next: NextFunction) => {
-    const id = Number(req.params.id);
+  wrap(async (req: Request, res: Response) => {
+    const id = req.params.id ? Number(req.params.id) : 0;
     const result = await reviewServiceInstance.getReview(id);
     return res.json({ result });
   }),
@@ -74,10 +77,15 @@ router.get(
  *        in: query
  *        description: "페이지 번호"
  *        required: true
+ *      - name: pageSize
+ *        type: number
+ *        in: query
+ *        description: "페이지 크기"
+ *        required: true
  *      - name: meetingId
  *        type: number
  *        in: query
- *        description: "호스트 ID"
+ *        description: "모임 ID"
  *      - name: userId
  *        type: string
  *        in: query
@@ -89,11 +97,14 @@ router.get(
 
 router.get(
   '/',
-  wrap(async (req: Request, res: Response, next: NextFunction) => {
-    const meetingId = Number(req.query.meetingId);
-    const userId = String(req.query.userId);
-    const pageNum = Number(req.query.pageNum);
-    const result = await reviewServiceInstance.listReviews(meetingId, userId, pageNum);
+  wrap(async (req: Request, res: Response) => {
+    const meetingId = req.query.meetingId ? Number(req.query.meetingId) : 0;
+    const userId = req.query.userId ? String(req.query.userId) : '';
+    const page: Page = {
+      pageNum: Number(req.query.pageNum) || 0,
+      pageSize: Number(req.query.pageSize) || 0,
+    };
+    const result = await reviewServiceInstance.listReviews(meetingId, userId, page);
     return res.json({ result });
   }),
 );
@@ -118,10 +129,16 @@ router.get(
 
 router.post(
   '/',
-  wrap(async (req: Request, res: Response, next: NextFunction) => {
-    const reviewInfo = req.body as ReviewPostParam;
-    const result = await reviewServiceInstance.createReview(reviewInfo);
-    return res.json({ result });
+  wrap(async (req: Request, res: Response) => {
+    const reviewInfo: ReviewPostParam = {
+      meetingId: req.body.meetingId || 0,
+      userId: req.body.userId || '',
+      title: req.body.title || '',
+      content: req.body.content || '',
+    };
+    const condition = (await meetingServiceInstance.checkReviewCondition(reviewInfo)) || false;
+    const result = await reviewServiceInstance.createReview(condition, reviewInfo);
+    return res.status(201).json({ result });
   }),
 );
 
@@ -146,8 +163,8 @@ router.post(
 
 router.delete(
   '/:id',
-  wrap(async (req: Request, res: Response, next: NextFunction) => {
-    const id = Number(req.params.id);
+  wrap(async (req: Request, res: Response) => {
+    const id = req.params.id ? Number(req.params.id) : 0;
     const result = await reviewServiceInstance.deleteReview(id);
     return res.json({ result });
   }),
@@ -177,9 +194,15 @@ router.delete(
 
 router.put(
   '/:id',
-  wrap(async (req: Request, res: Response, next: NextFunction) => {
-    const id = Number(req.params.id);
-    const reviewInfo = req.body as ReviewPostParam;
+  wrap(async (req: Request, res: Response) => {
+    const id = req.params.id ? Number(req.params.id) : 0;
+
+    const reviewInfo: ReviewPostParam = {
+      meetingId: req.body.meetingId || 0,
+      userId: req.body.userId || '',
+      title: req.body.title || '',
+      content: req.body.content || '',
+    };
     const result = await reviewServiceInstance.updateReview(id, reviewInfo);
     return res.json({ result });
   }),
