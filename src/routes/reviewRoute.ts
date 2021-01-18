@@ -29,10 +29,10 @@ import { Page } from '../model/Page';
 const router = Router();
 // DI
 const serviceUtilInstance = new ServiceUtil();
-const reviewMapperInstance = new reviewRepository(serviceUtilInstance);
-const meetingMapperInstance = new meetingRepository(serviceUtilInstance);
-const meetingServiceInstance = new meetingService(meetingMapperInstance, serviceUtilInstance);
-const reviewServiceInstance = new reviewService(reviewMapperInstance, serviceUtilInstance);
+const reviewRepositoryInstance = new reviewRepository(serviceUtilInstance);
+const meetingRepositoryInstance = new meetingRepository(serviceUtilInstance);
+const meetingServiceInstance = new meetingService(meetingRepositoryInstance, serviceUtilInstance);
+const reviewServiceInstance = new reviewService(reviewRepositoryInstance, serviceUtilInstance);
 
 /**
  * @swagger

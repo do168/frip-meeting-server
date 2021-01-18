@@ -35,8 +35,8 @@ import { Page } from '../model/Page';
 const router = Router();
 // DI
 const serviceUtilInstance = new ServiceUtil();
-const meetingMapperInstance = new meetingRepository(serviceUtilInstance);
-const meetingServiceInstance = new meetingService(meetingMapperInstance, serviceUtilInstance);
+const meetingRepositoryInstance = new meetingRepository(serviceUtilInstance);
+const meetingServiceInstance = new meetingService(meetingRepositoryInstance, serviceUtilInstance);
 
 /**
  * @swagger
