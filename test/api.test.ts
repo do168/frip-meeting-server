@@ -1,7 +1,6 @@
 import { App } from '../src/App';
 import request from 'supertest';
 import { createSchema } from './schemaUtils';
-import { NullException } from '../src/util/customException';
 
 const app = new App();
 app.run(4080);
@@ -51,15 +50,15 @@ const meetingPostParamWithDifferentType = {
   place: '울산 중구 태화동',
 };
 
-const meetingPostParamWithQuote = {
+const meetingPostParamWithSpecificCharacter = {
   hostId: 'HostFirst',
   title: "'따옴표' 포함된 생성테스트. Test에 올라가나요?",
-  content: '미팅이 생성됐습니다. 테스트가 잘 진행될까 궁금하다',
+  content: '"쌍따옴표" 미팅이 생성됐습니다. 이것도 올라가야 하는데요. 테스트가 잘 진행될까 궁금하다',
   startAt: '2021-01-19 12:33:33',
   endAt: '2021-01-19 12:33:33',
   deadline: '2021-01-19 12:33:33',
   maxParticipant: 4,
-  place: '울산 중구 태화동',
+  place: '`백틱` 문자입니다. 이것도 올라가야 합니다 울산 중구 태화동',
 };
 
 const meetingPostParamUpdate = {
@@ -94,6 +93,13 @@ const reviewPostParamWithNull = {
   content: '리뷰가 잘 생성되나 궁금하네요',
 };
 
+const reviewPostParamWithSpecificCharacter = {
+  meetingId: 1,
+  userId: 'UserFirst',
+  title: "'따옴표' 가 들어간 제목",
+  content: '"쌍따옴표"와 `백틱`이 들어간 내용입니다. 리뷰가 잘 생성되나 궁금하네요',
+};
+
 const reviewPostParamWithNoParticipant = {
   meetingId: 1,
   userId: 'UserSecond',
@@ -126,17 +132,27 @@ describe('Test post /meetings', () => {
   });
 });
 
-// 모임 등록 테스트 3 - 따옴표 포함 - 디비 결과 확인하자
+// 모임 등록, 조회 테스트 3 - 따옴표, 쌍따옴표, 백틱 검사
 describe('Test post /meetings', () => {
-  test('register meeting with correct params(include Quotes) -> should return ok', async (done) => {
-    const res = await request(express).post('/meetings').send(meetingPostParamWithQuote);
+  test('register meeting with correct params(include Quotes, Double Qoutes, BackTick) -> should return ok', async (done) => {
+    const res = await request(express).post('/meetings').send(meetingPostParamWithSpecificCharacter);
     expect(res.status).toBe(201);
+    done();
+  });
 
+  test('get meetingId meeting with correct params(include Quotes, Double Qoutes, BackTick) -> should return ok', async (done) => {
+    const res = await request(express).get('/meetings/4');
+    expect(res.status).toBe(200);
+    expect(res.body.result!.title).toStrictEqual("'따옴표' 포함된 생성테스트. Test에 올라가나요?");
+    expect(res.body.result!.content).toStrictEqual(
+      '"쌍따옴표" 미팅이 생성됐습니다. 이것도 올라가야 하는데요. 테스트가 잘 진행될까 궁금하다',
+    );
+    expect(res.body.result!.place).toStrictEqual('`백틱` 문자입니다. 이것도 올라가야 합니다 울산 중구 태화동');
     done();
   });
 });
 
-// 모임 등록 테스트 4 - 등록 파라미터 중 날짜를 나타내는 파라미터의 타입이 다른 경우 - 이 경우는 프론트에서 처리해서 줘야할듯싶다.
+// 모임 등록 테스트 4 - 등록 파라미터 중 날짜를 나타내는 파라미터의 형식이나 타입이 다른 경우
 describe('Test post /meetings', () => {
   test('register meeting with params of different type -> should return 500', async (done) => {
     const res = await request(express).post('/meetings').send(meetingPostParamWithDifferentType);
@@ -144,28 +160,8 @@ describe('Test post /meetings', () => {
     done();
   });
 });
-//###################################################################################################### 모임 등록
-/** 현재 meeting Table 상태
- * 
- * {
-      id: 1,
-      title: '사전입력모임',
-      deadline: '2009-01-02T03:33:33.000Z',
-    },
-    {
-      id: 2,
-      title: '미팅생성테스트. Test에 올라가나요?',
-      deadline: '2021-01-19T03:33:33.000Z',
-    },
-    {
-      id: 3,
-      title: '미팅생성테스트. Test에 올라가나요?',
-      deadline: '2009-01-02T03:33:33.000Z',
-    },
- * 
-*/
 
-// 모임 수정 테스트  - 4번 미팅 - 디비 결과 확인하자
+// 모임 수정 테스트  - 4번 미팅 - 정상
 describe('Test put /meetings/4', () => {
   test('update meeting with correct params -> should return ok', async (done) => {
     const res = await request(express).put('/meetings/4').send(meetingPostParamUpdate);
@@ -175,7 +171,7 @@ describe('Test put /meetings/4', () => {
   });
 });
 
-// 모임 수정 테스트 - Null Exception
+// 모임 수정 테스트 - Null Exception - path가 undefined 인 경우
 describe('Test put /meetings/', () => {
   test('update meeting with incorrect params -> should return Bad Reqeust', async (done) => {
     const res = await request(express).put('/meetings').send(meetingPostParam);
@@ -221,19 +217,19 @@ describe('Test get /meetings?hostId=&pageNum=1&pageSize=3', () => {
       // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
       result: [
         {
-          deadline: '2009-01-02T03:33:33.000Z',
           id: 1,
           title: '사전입력모임',
+          deadline: '2009-01-02 12:33:33',
         },
         {
           id: 2,
           title: '미팅생성테스트. Test에 올라가나요?',
-          deadline: '2021-01-19T03:33:33.000Z',
+          deadline: '2021-01-19 12:33:33',
         },
         {
-          deadline: '2009-01-02T03:33:33.000Z',
           id: 3,
           title: '미팅생성테스트. Test에 올라가나요?',
+          deadline: '2009-01-02 12:33:33',
         },
       ],
     });
@@ -250,11 +246,24 @@ describe('Test get /meetings?hostId=&pageNum=2&pageSize=3', () => {
       // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
       result: [
         {
-          deadline: '2021-01-19T03:33:33.000Z',
+          deadline: '2021-01-19 12:33:33',
           id: 4,
           title: "'따옴표' 포함된 생성테스트. Test에 올라가나요?",
         },
       ],
+    });
+    done();
+  });
+});
+
+// 전체 모임 가져오기 테스트 - 총 meeting 수 : 4 , pageNum = 3, pageSize = 3 으로 하여 빈 배열 리턴되는지 확인
+describe('Test get /meetings?hostId=&pageNum=3&pageSize=3', () => {
+  test('get meeting list with correct params -> should return ok', async (done) => {
+    const res = await request(express).get('/meetings?hostId=&pageNum=3&pageSize=3');
+    expect(res.status).toBe(200);
+    expect(res.body).toStrictEqual({
+      // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
+      result: [],
     });
     done();
   });
@@ -269,14 +278,14 @@ describe('Test get /meetings?hostId=HostFirst&pageNum=1&pageSize=2', () => {
       // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
       result: [
         {
-          deadline: '2009-01-02T03:33:33.000Z',
+          deadline: '2009-01-02 12:33:33',
           id: 1,
           title: '사전입력모임',
         },
         {
           id: 2,
           title: '미팅생성테스트. Test에 올라가나요?',
-          deadline: '2021-01-19T03:33:33.000Z',
+          deadline: '2021-01-19 12:33:33',
         },
       ],
     });
@@ -312,7 +321,7 @@ describe('Test get /meetings?hostId=HostFirst&pageNum=1&pageSize=', () => {
   });
 });
 
-// 모임 취소 테스트 - Null Exception
+// 모임 취소 테스트 - Null Exception - path가 undefined 인 경우
 describe('Test delete /meetings/undefined', () => {
   test('delete meeting with Null Value params -> should return Bad Reqeust', async (done) => {
     const res = await request(express).delete('/meetings/');
@@ -342,7 +351,7 @@ describe('Test post /meetings/2/users', () => {
 describe('Test post /meetings/2/users', () => {
   test('insert meeting participation with correct params -> should return ok', async (done) => {
     const res = await request(express).post('/meetings/2/users').send({ userId: 'UserFirst' });
-    expect(res.body).toStrictEqual({});
+    expect(res.body.result!.affectedRows).toBe(1);
     expect(res.status).toBe(201);
     done();
   });
@@ -398,7 +407,7 @@ describe('Test delete /meetings/1/users/UserSecond', () => {
   });
 });
 
-// 미팅 참가 신청 취소 테스트 - Null Exception
+// 미팅 참가 신청 취소 테스트 - Null Exception - path가 undefined 인 경우
 describe('Test delete /meetings/2/users/', () => {
   test('delete meeting participation with incorrect param-> should return Bad Request', async (done) => {
     const res = await request(express).delete('/meetings/1/users/');
@@ -425,11 +434,30 @@ describe('Test post /reviews', () => {
   });
 });
 
-// 리뷰 등록 테스트 - NullException
+// 리뷰 등록 테스트 - NullException - path가 undefined 인 경우
 describe('Test post /reviews', () => {
   test('post review with incorrect params-> should return Bad Request', async (done) => {
     const res = await request(express).post('/reviews').send(reviewPostParamWithNull);
     expect(res.status).toBe(400);
+    done();
+  });
+});
+
+// 리뷰 등록 테스트 - 특수문자 - 따옴표, 쌍따옴표, 백틱
+describe('Test post /reviews', () => {
+  test('post review with specific character params-> should return OK', async (done) => {
+    const res = await request(express).post('/reviews').send(reviewPostParamWithSpecificCharacter);
+    expect(res.status).toBe(201);
+    done();
+  });
+
+  test('get review with specific character params -> should return OK', async (done) => {
+    const res = await request(express).get('/reviews/2');
+    expect(res.status).toBe(200);
+    expect(res.body.result!.title).toStrictEqual("'따옴표' 가 들어간 제목");
+    expect(res.body.result!.content).toStrictEqual(
+      '"쌍따옴표"와 `백틱`이 들어간 내용입니다. 리뷰가 잘 생성되나 궁금하네요',
+    );
     done();
   });
 });
@@ -480,7 +508,7 @@ describe('Test put /reviews/1', () => {
   });
 });
 
-// 리뷰 수정 테스트 - Null Exception
+// 리뷰 수정 테스트 - Null Exception - 입력한 param 중 일부가 null인 경우
 describe('Test put /reviews/1', () => {
   test('update review with incorrect param -> should return Bad Request', async (done) => {
     const res = await request(express).put('/reviews/1').send(reviewPostParamWithNull);
@@ -489,7 +517,7 @@ describe('Test put /reviews/1', () => {
   });
 });
 
-// 리뷰 삭제 테스트 - Null Exception
+// 리뷰 삭제 테스트 - Null Exception - path가 undefined 인 경우
 describe('Test delete /reviews/', () => {
   test('delete review with incorrect param -> should return Bad Request', async (done) => {
     const res = await request(express).delete('/reviews/');
