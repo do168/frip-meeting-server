@@ -284,7 +284,6 @@ export default class meetingRepository {
     if (this.serviceUtil.isEmpty(result)) {
       throw new Error();
     }
-    console.log('미팅에 참여한 사람인가요', result[0][0].cnt);
     return result[0][0].cnt === 1;
   }
 

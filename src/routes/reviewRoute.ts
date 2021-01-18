@@ -4,7 +4,7 @@ import reviewRepository from '../repository/reviewRepository';
 import reviewService from '../services/reviewService';
 import ServiceUtil from '../util/serviceUtil';
 import { ReviewPostParam } from '../model/input/ReviewPostParam';
-import meetingMapper from '../repository/meetingRepository';
+import meetingRepository from '../repository/meetingRepository';
 import meetingService from '../services/meetingService';
 import { Page } from '../model/Page';
 /**
@@ -30,7 +30,7 @@ const router = Router();
 // DI
 const serviceUtilInstance = new ServiceUtil();
 const reviewMapperInstance = new reviewRepository(serviceUtilInstance);
-const meetingMapperInstance = new meetingMapper(serviceUtilInstance);
+const meetingMapperInstance = new meetingRepository(serviceUtilInstance);
 const meetingServiceInstance = new meetingService(meetingMapperInstance, serviceUtilInstance);
 const reviewServiceInstance = new reviewService(reviewMapperInstance, serviceUtilInstance);
 
