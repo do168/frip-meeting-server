@@ -6,9 +6,13 @@ import meetingRoute from './routes/meetingRoute';
 import reviewRoute from './routes/reviewRoute';
 import { handleError } from './util/errorUtil';
 import { NotFoundException } from './util/customException';
+import { ApolloServer, defaultPlaygroundOptions } from 'apollo-server';
+import typeDefs from './graphql/typeDef';
+import resolvers from './graphql/resolver';
 
 export class App {
   private express: express.Application;
+  private server: ApolloServer | null = null;
   private httpServer: http.Server | null = null;
   constructor() {
     this.express = express();
@@ -16,7 +20,21 @@ export class App {
     this.routes();
   }
 
+  public buildServer(func: (ctx: any) => any): ApolloServer {
+    const playgroundOptions = defaultPlaygroundOptions;
+    playgroundOptions.settings['request.credentials'] = 'include';
+    playgroundOptions.settings['editor.cursorShape'] = 'line';
+
+    return new ApolloServer({
+      typeDefs: typeDefs,
+      resolvers: resolvers,
+      context: func,
+      playground: playgroundOptions,
+    });
+  }
+
   public async run(port: number): Promise<void> {
+    this.server = this.buildServer(buildContext);
     this.httpServer = this.express.listen(port);
   }
 

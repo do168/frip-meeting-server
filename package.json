@@ -47,6 +47,7 @@
     "config": "^3.3.3",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "graphql": "^15.4.0",
     "js-yaml": "^3.14.1",
     "mysql2": "^2.2.5",
     "promise-mysql": "^5.0.1"
