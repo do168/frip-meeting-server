@@ -58,7 +58,7 @@ const typeDefs = gql`
     deadline: String
     maxParticipant: Int
     place: String
-    updatedAt: Time
+    updatedAt: String
     currentParticipant: Int!
   }
 
