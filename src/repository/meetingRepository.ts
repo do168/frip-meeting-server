@@ -44,7 +44,7 @@ export default class meetingRepository {
       ?,
       ?
     )`;
-    const result = await mysql.transaction(sql, param);
+    const result = await mysql.connect(sql, param);
     if (this.serviceUtil.isEmpty(result)) {
       throw new Error();
     }
@@ -75,7 +75,6 @@ export default class meetingRepository {
       updatedAt,
       maxParticipant,
       place,
-      updatedAt,
       (SELECT 
         count(*)
       FROM
@@ -90,11 +89,15 @@ export default class meetingRepository {
     if (this.serviceUtil.isEmpty(result)) {
       throw new Error();
     }
+    // const dateParams = ['startAt', 'endAt', 'deadline', 'updatedAt'];
+    // for (let property in dateParams.keys) {
+    //   result[0][0].property = this.serviceUtil.dateToStr(result[0][0].property);
+    // }
     return result[0][0];
   }
 
   // select
-  public async listHostMeetings(hostId: string, page: Page): Promise<Array<Meeting>> {
+  public async listHostMeetings(hostId: string, page: Page): Promise<Meeting[]> {
     const offset = this.serviceUtil.caculateOffset(page.pageNum, page.pageSize);
     const param = [hostId, offset, page.pageSize];
     const sql = `
@@ -131,7 +134,7 @@ export default class meetingRepository {
   }
 
   // delete
-  public async deleteMeeting(id: number): Promise<Number> {
+  public async deleteMeeting(id: number): Promise<number> {
     const param = [id];
     const sql = `
     update 
@@ -141,7 +144,7 @@ export default class meetingRepository {
     where 
       id = ?
     `;
-    const result = await mysql.transaction(sql, param);
+    const result = await mysql.connect(sql, param);
     if (this.serviceUtil.isEmpty(result)) {
       throw new Error();
     }
@@ -149,7 +152,7 @@ export default class meetingRepository {
   }
 
   // update
-  public async updateMeeting(id: number, meetingInfo: MeetingPostParam): Promise<Number> {
+  public async updateMeeting(id: number, meetingInfo: MeetingPostParam): Promise<number> {
     const param = [
       meetingInfo.title,
       meetingInfo.content,
@@ -174,7 +177,7 @@ export default class meetingRepository {
     where
       id = ?
     `;
-    const result = await mysql.transaction(sql, param);
+    const result = await mysql.connect(sql, param);
 
     if (this.serviceUtil.isEmpty(result)) {
       throw new Error();
@@ -196,7 +199,7 @@ export default class meetingRepository {
       ?
     )
     `;
-    const result = await mysql.transaction(sql, param);
+    const result = await mysql.connect(sql, param);
 
     if (this.serviceUtil.isEmpty(result)) {
       throw new Error();
@@ -209,7 +212,7 @@ export default class meetingRepository {
   }
 
   // delete
-  public async deleteMeetingParticipation(id: number, userId: string): Promise<Number> {
+  public async deleteMeetingParticipation(id: number, userId: string): Promise<number> {
     const param = [id, userId];
     const sql = `
     update 
@@ -219,7 +222,7 @@ export default class meetingRepository {
     where 
       meetingId = ? and userId = ?
     `;
-    const result = await mysql.transaction(sql, param);
+    const result = await mysql.connect(sql, param);
 
     if (this.serviceUtil.isEmpty(result)) {
       throw new Error();
@@ -228,7 +231,7 @@ export default class meetingRepository {
   }
 
   // update - 출석 체크
-  public async updateMeetingAttendance(id: number, userId: string): Promise<Number> {
+  public async updateMeetingAttendance(id: number, userId: string): Promise<number> {
     const param = [id, userId];
 
     const sql = `
@@ -239,7 +242,7 @@ export default class meetingRepository {
     where 
       meetingId = ? and userId = ?
     `;
-    const result = await mysql.transaction(sql, param);
+    const result = await mysql.connect(sql, param);
 
     if (this.serviceUtil.isEmpty(result)) {
       throw new Error();
@@ -248,7 +251,7 @@ export default class meetingRepository {
   }
 
   // select 현재 참가 신청 인원
-  public async getCntMeetingParticipant(id: number): Promise<Number> {
+  public async getCntMeetingParticipant(id: number): Promise<number> {
     const param = [id];
 
     const sql = `
@@ -268,7 +271,7 @@ export default class meetingRepository {
   }
 
   // select 리뷰 조건 검사
-  public async isParticipant(id: number, userId: string): Promise<Boolean> {
+  public async isParticipant(id: number, userId: string): Promise<boolean> {
     const param = [id, userId];
 
     const sql = `
@@ -288,7 +291,7 @@ export default class meetingRepository {
   }
 
   // select 리뷰 조건 검사
-  public async isAttendee(id: number, userId: string): Promise<Boolean> {
+  public async isAttendee(id: number, userId: string): Promise<boolean> {
     const param = [id, userId];
 
     const sql = `

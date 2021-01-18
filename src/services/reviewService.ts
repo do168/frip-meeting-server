@@ -1,9 +1,14 @@
+import { Mysql as mysql } from '../config/mysql';
 import { ReviewPostParam } from '../model/input/ReviewPostParam';
 import { Review } from '../model/Review';
 import reviewRepository from '../repository/reviewRepository';
 import ServiceUtil from '../util/serviceUtil';
-import { NullException, NotExistsException, ReviewConditionException } from '../util/customException';
-import meetingRepository from '../repository/meetingRepository';
+import {
+  NullException,
+  NotExistsException,
+  ReviewConditionException,
+  NotCreationException,
+} from '../util/customException';
 import { PostReturn } from '../model/PostReturn';
 import { Page } from '../model/Page';
 
@@ -24,16 +29,17 @@ export default class reviewService {
   public async createReview(condition: boolean, reviewInfo: ReviewPostParam): Promise<PostReturn> {
     // reviewInfo 빈값 체크
     this.serviceUtil.checkEmptyPostParam(reviewInfo, Object.keys(reviewInfo));
+
+    // 리뷰 생성 조건 체크 ( 미팅 참여, 출석)
     if (!condition) {
       throw new ReviewConditionException();
     }
     const result = await this.reviewMapper.createReview(reviewInfo);
     // affectedRow가 1이 아닌 경우 에러 리턴
     if (result.affectedRows != 1) {
-      throw new NotExistsException();
-    } else {
-      return result;
+      throw new NotCreationException();
     }
+    return result;
   }
 
   /**
@@ -48,6 +54,7 @@ export default class reviewService {
       throw new NullException('id');
     }
     const result = await this.reviewMapper.getReview(id);
+    result.updatedAt = this.serviceUtil.dateToStr(new Date(result.updatedAt));
     return result;
   }
 
@@ -58,22 +65,31 @@ export default class reviewService {
    * @param pageNum 페이지 번호
    * @return Array<Review>
    */
-  public async listReviews(meetingId: number, userId: string, page: Page): Promise<Array<Review>> {
+  public async listReviews(meetingId: number, userId: string, page: Page): Promise<Review[]> {
     // page 빈 값 체크
     this.serviceUtil.checkEmptyPostParam(page, Object.keys(page));
     // user 필터 리뷰 리스트
     if (this.serviceUtil.isEmpty(meetingId) && !this.serviceUtil.isEmpty(userId)) {
       const result = await this.reviewMapper.listUserReviews(userId, page);
+      for (let i in result) {
+        result[i].updatedAt = this.serviceUtil.dateToStr(new Date(result[i].updatedAt));
+      }
       return result;
     }
     // meeting 필터 리뷰 리스트
     else if (!this.serviceUtil.isEmpty(meetingId) && this.serviceUtil.isEmpty(userId)) {
       const result = await this.reviewMapper.listMeetingReviews(meetingId, page);
+      for (let i in result) {
+        result[i].updatedAt = this.serviceUtil.dateToStr(new Date(result[i].updatedAt));
+      }
       return result;
     }
     // 전체 리뷰 리스트
     else {
       const result = await this.reviewMapper.listReviews(page);
+      for (let i in result) {
+        result[i].updatedAt = this.serviceUtil.dateToStr(new Date(result[i].updatedAt));
+      }
       return result;
     }
   }
@@ -83,7 +99,7 @@ export default class reviewService {
    * @param id 삭제할 리뷰 ID
    * @reutrn affectedRow
    */
-  public async deleteReview(id: number): Promise<Number> {
+  public async deleteReview(id: number): Promise<number> {
     // id 빈값 체크
     if (this.serviceUtil.isEmpty(id)) {
       throw new NullException('id');
@@ -92,9 +108,8 @@ export default class reviewService {
     // affectedRow가 1이 아닌 경우 에러 리턴
     if (result != 1) {
       throw new NotExistsException();
-    } else {
-      return result;
     }
+    return result;
   }
 
   /**
@@ -103,7 +118,7 @@ export default class reviewService {
    * @param body 수정할 내용 - Review
    * @return affectedRow
    */
-  public async updateReview(id: number, reviewInfo: ReviewPostParam): Promise<Number> {
+  public async updateReview(id: number, reviewInfo: ReviewPostParam): Promise<number> {
     // id 빈 값 체크
     if (this.serviceUtil.isEmpty(id)) {
       throw new NullException('id');
@@ -115,8 +130,7 @@ export default class reviewService {
     // affectedRow가 1이 아닌 경우 에러 리턴
     if (result != 1) {
       throw new NotExistsException();
-    } else {
-      return result;
     }
+    return result;
   }
 }

@@ -1,4 +1,4 @@
-import { NullException } from './customException';
+import { DateFormatException, NullException } from './customException';
 
 export default class ServiceUtil {
   /**
@@ -42,8 +42,10 @@ export default class ServiceUtil {
 
   public isBeforeTime(comparing: number, standard: number, conditionTime: number): boolean {
     if (standard - comparing >= conditionTime) {
+      console.log(standard, comparing, '기준 시간 전입니다');
       return true;
     } else {
+      console.log(standard, comparing, '기준 시간 후입니다');
       return false;
     }
   }
@@ -53,6 +55,39 @@ export default class ServiceUtil {
       return true;
     } else {
       return false;
+    }
+  }
+
+  public dateToStr(format: Date): string {
+    const year = format.getFullYear();
+
+    let month: number | string = format.getMonth() + 1;
+
+    if (month < 10) month = '0' + month;
+
+    let date: number | string = format.getDate();
+
+    if (date < 10) date = '0' + date;
+
+    let hour: number | string = format.getHours();
+
+    if (hour < 10) hour = '0' + hour;
+
+    let min: number | string = format.getMinutes();
+
+    if (min < 10) min = '0' + min;
+
+    let sec: number | string = format.getSeconds();
+
+    if (sec < 10) sec = '0' + sec;
+
+    return year + '-' + month + '-' + date + ' ' + hour + ':' + min + ':' + sec;
+  }
+
+  public checkCorrectDateFormat(format: string): void {
+    const datetimeRegexp = /[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]/;
+    if (!datetimeRegexp.test(format)) {
+      throw new DateFormatException();
     }
   }
 }

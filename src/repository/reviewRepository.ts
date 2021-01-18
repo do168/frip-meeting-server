@@ -6,7 +6,7 @@ import { Review } from '../model/Review';
 import ServiceUtil from '../util/serviceUtil';
 
 export default class reviewRepository {
-  serviceUtil: ServiceUtil;
+  private serviceUtil: ServiceUtil;
   constructor(serviceUtil: ServiceUtil) {
     this.serviceUtil = serviceUtil;
   }
@@ -26,7 +26,7 @@ export default class reviewRepository {
       ?
     )
     `;
-    const result = await mysql.transaction(sql, param);
+    const result = await mysql.connect(sql, param);
     if (this.serviceUtil.isEmpty(result)) {
       throw new Error();
     }
@@ -55,13 +55,13 @@ export default class reviewRepository {
       id = ? and status = 1
     `;
     const result = await mysql.connect(sql, param);
-    if (this.serviceUtil.isEmpty(result)) {
+    if (this.serviceUtil.isEmpty(result) || this.serviceUtil.isEmpty(result[0])) {
       throw new Error();
     }
     return result[0][0];
   }
 
-  public async listMeetingReviews(meetingId: number, page: Page): Promise<Array<Review>> {
+  public async listMeetingReviews(meetingId: number, page: Page): Promise<Review[]> {
     const offset = this.serviceUtil.caculateOffset(page.pageNum, page.pageSize);
     const param = [meetingId, offset, page.pageSize];
     const sql = `
@@ -83,7 +83,7 @@ export default class reviewRepository {
     return result[0];
   }
 
-  public async listUserReviews(userId: string, page: Page): Promise<Array<Review>> {
+  public async listUserReviews(userId: string, page: Page): Promise<Review[]> {
     const offset = this.serviceUtil.caculateOffset(page.pageNum, page.pageSize);
     const param = [userId, offset, page.pageSize];
     const sql = `
@@ -105,7 +105,7 @@ export default class reviewRepository {
     return result[0];
   }
 
-  public async listReviews(page: Page): Promise<Array<Review>> {
+  public async listReviews(page: Page): Promise<Review[]> {
     const offset = this.serviceUtil.caculateOffset(page.pageNum, page.pageSize);
     const param = [offset, page.pageSize];
     const sql = `
@@ -127,7 +127,7 @@ export default class reviewRepository {
     return result[0];
   }
 
-  public async deleteReview(id: number): Promise<Number> {
+  public async deleteReview(id: number): Promise<number> {
     const param = [id];
     const sql = `
     update 
@@ -137,14 +137,14 @@ export default class reviewRepository {
     where 
       id = ?
     `;
-    const result = await mysql.transaction(sql, param);
+    const result = await mysql.connect(sql, param);
     if (this.serviceUtil.isEmpty(result)) {
       throw new Error();
     }
     return result[0].affectedRows;
   }
 
-  public async updateReview(id: number, reviewInfo: ReviewPostParam): Promise<Number> {
+  public async updateReview(id: number, reviewInfo: ReviewPostParam): Promise<number> {
     const param = [reviewInfo.title, reviewInfo.content, id];
     const sql = `
     update 
@@ -155,7 +155,7 @@ export default class reviewRepository {
     where 
       id = ?
     `;
-    const result = await mysql.transaction(sql, param);
+    const result = await mysql.connect(sql, param);
     if (this.serviceUtil.isEmpty(result)) {
       throw new Error();
     }

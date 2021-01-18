@@ -7,6 +7,7 @@ import {
   NotExistsException,
   TimeLimitException,
   FullParticipationException,
+  NotCreationException,
 } from '../util/customException';
 import { PostReturn } from '../model/PostReturn';
 import { ReviewPostParam } from '../model/input/ReviewPostParam';
@@ -31,15 +32,19 @@ export default class meetingService {
     // meetingInfo 빈 값 체크
     this.serviceUtil.checkEmptyPostParam(meetingInfo, Object.keys(meetingInfo));
 
+    // meetingInfo 날짜 형식 체크
+    this.serviceUtil.checkCorrectDateFormat(meetingInfo.startAt);
+    this.serviceUtil.checkCorrectDateFormat(meetingInfo.endAt);
+    this.serviceUtil.checkCorrectDateFormat(meetingInfo.deadline);
+
     const result = await this.meetingMapper.createMeeting(meetingInfo);
+
     // affectedRow가 1이 아닌 경우 에러 리턴
     if (result.affectedRows != 1) {
       console.log(result.affectedRows);
-      throw new NotExistsException();
-    } else {
-      console.log('성공!');
-      return result;
+      throw new NotCreationException();
     }
+    return result;
   }
 
   /**
@@ -54,6 +59,10 @@ export default class meetingService {
       throw new NullException('id');
     }
     const resultMeetingInfo: Meeting = await this.meetingMapper.getMeeting(id);
+    resultMeetingInfo.deadline = this.serviceUtil.dateToStr(new Date(resultMeetingInfo.deadline));
+    resultMeetingInfo.startAt = this.serviceUtil.dateToStr(new Date(resultMeetingInfo.startAt));
+    resultMeetingInfo.endAt = this.serviceUtil.dateToStr(new Date(resultMeetingInfo.endAt));
+    resultMeetingInfo.updatedAt = this.serviceUtil.dateToStr(new Date(resultMeetingInfo.updatedAt));
 
     return resultMeetingInfo;
   }
@@ -64,18 +73,24 @@ export default class meetingService {
    * @param pageNum 페이지 번호
    * @return Array<Meeting>
    */
-  public async listMeetings(hostId: string, page: Page): Promise<Array<Meeting>> {
+  public async listMeetings(hostId: string, page: Page): Promise<Meeting[]> {
     // 빈값 체크
     this.serviceUtil.checkEmptyPostParam(page, Object.keys(page));
 
     // hostId가 값이 없는 경우 전체 모임을 조회한다
     if (this.serviceUtil.isEmpty(hostId)) {
       const result = await this.meetingMapper.listMeetings(page);
+      for (let i in result) {
+        result[i].deadline = this.serviceUtil.dateToStr(new Date(result[i].deadline));
+      }
       return result;
     }
     // hostId가 값이 있는 경우 해당 호스트의 모임을 조회한다.
     else {
       const result = await this.meetingMapper.listHostMeetings(hostId, page);
+      for (let i in result) {
+        result[i].deadline = this.serviceUtil.dateToStr(new Date(result[i].deadline));
+      }
       return result;
     }
   }
@@ -85,7 +100,7 @@ export default class meetingService {
    * @param id 삭제할 미팅 ID
    * @return affectedRow
    */
-  public async deleteMeeting(id: number): Promise<Number> {
+  public async deleteMeeting(id: number): Promise<number> {
     // id 빈 값 체크
     if (this.serviceUtil.isEmpty(id)) {
       throw new NullException('id');
@@ -94,9 +109,8 @@ export default class meetingService {
     // affectedRow가 1이 아닌 경우 에러 리턴
     if (result != 1) {
       throw new NotExistsException();
-    } else {
-      return result;
     }
+    return result;
   }
 
   /**
@@ -105,7 +119,7 @@ export default class meetingService {
    * @param meetingInfo 변경할 모임 정보
    * @return affectedRow
    */
-  public async updateMeeting(id: number, meetingInfo: MeetingPostParam): Promise<Number> {
+  public async updateMeeting(id: number, meetingInfo: MeetingPostParam): Promise<number> {
     // id값 null 체크
     if (this.serviceUtil.isEmpty(id)) {
       throw new NullException('id');
@@ -118,9 +132,8 @@ export default class meetingService {
     // affectedRow가 1이 아닌 경우 에러 리턴
     if (result != 1) {
       throw new NotExistsException();
-    } else {
-      return result;
     }
+    return result;
   }
 
   /**
@@ -154,10 +167,9 @@ export default class meetingService {
 
     // affectedRow가 1이 아닌 경우 에러 리턴
     if (result.affectedRows != 1) {
-      throw new NotExistsException();
-    } else {
-      return result;
+      throw new NotCreationException();
     }
+    return result;
   }
 
   /**
@@ -166,7 +178,7 @@ export default class meetingService {
    * @param userId 참가신청 취소할 유저 ID
    * @return affectedRow
    */
-  public async deleteMeetingParticipation(id: number, userId: string): Promise<Number> {
+  public async deleteMeetingParticipation(id: number, userId: string): Promise<number> {
     // id 빈값 체크
     if (this.serviceUtil.isEmpty(id)) {
       throw new NullException('id');
@@ -187,9 +199,8 @@ export default class meetingService {
     // affectedRow가 1이 아닌 경우 에러 리턴
     if (result != 1) {
       throw new NotExistsException();
-    } else {
-      return result;
     }
+    return result;
   }
 
   /**
@@ -198,7 +209,7 @@ export default class meetingService {
    * @param userId 유저 ID
    * @return affectedRow
    */
-  public async updateMeetingAttendance(id: number, userId: string): Promise<Number> {
+  public async updateMeetingAttendance(id: number, userId: string): Promise<number> {
     // 파라미터 빈칸 체크
     if (this.serviceUtil.isEmpty(id)) {
       throw new NullException('id');
@@ -218,9 +229,8 @@ export default class meetingService {
     // affectedRow가 1이 아닌 경우 에러 리턴
     if (result != 1) {
       throw new NotExistsException();
-    } else {
-      return result;
     }
+    return result;
   }
 
   public async checkReviewCondition(reviewInfo: ReviewPostParam): Promise<boolean> {

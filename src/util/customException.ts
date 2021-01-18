@@ -8,6 +8,16 @@ export class NullException extends Error {
   }
 }
 
+export class NotCreationException extends Error {
+  status: number;
+  constructor() {
+    super('등록되지 않았습니다!. 잠시 후 다시 시도해보세요');
+    this.name = 'Client';
+    this.stack = Error().stack;
+    this.status = 400;
+  }
+}
+
 export class NotExistsException extends Error {
   status: number;
   constructor() {
@@ -55,5 +65,15 @@ export class NotFoundException extends Error {
     this.name = 'Client';
     this.stack = Error().stack;
     this.status = 404;
+  }
+}
+
+export class DateFormatException extends Error {
+  status: number;
+  constructor() {
+    super('날짜 형식이 잘못되었습니다!');
+    this.name = 'Client';
+    this.stack = Error().stack;
+    this.status = 400;
   }
 }

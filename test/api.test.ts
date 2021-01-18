@@ -136,6 +136,35 @@ describe('Test post /meetings', () => {
   });
 });
 
+// 모임 등록 테스트 4 - 등록 파라미터 중 날짜를 나타내는 파라미터의 타입이 다른 경우 - 이 경우는 프론트에서 처리해서 줘야할듯싶다.
+describe('Test post /meetings', () => {
+  test('register meeting with params of different type -> should return 500', async (done) => {
+    const res = await request(express).post('/meetings').send(meetingPostParamWithDifferentType);
+    expect(res.status).toBe(400);
+    done();
+  });
+});
+//###################################################################################################### 모임 등록
+/** 현재 meeting Table 상태
+ * 
+ * {
+      id: 1,
+      title: '사전입력모임',
+      deadline: '2009-01-02T03:33:33.000Z',
+    },
+    {
+      id: 2,
+      title: '미팅생성테스트. Test에 올라가나요?',
+      deadline: '2021-01-19T03:33:33.000Z',
+    },
+    {
+      id: 3,
+      title: '미팅생성테스트. Test에 올라가나요?',
+      deadline: '2009-01-02T03:33:33.000Z',
+    },
+ * 
+*/
+
 // 모임 수정 테스트  - 4번 미팅 - 디비 결과 확인하자
 describe('Test put /meetings/4', () => {
   test('update meeting with correct params -> should return ok', async (done) => {
@@ -169,22 +198,7 @@ describe('Test get /meetings/1', () => {
   test('get meetingId meeting with correct params -> should return ok', async (done) => {
     const res = await request(express).get('/meetings/1');
     expect(res.status).toBe(200);
-    // expect(res.body).toStrictEqual({
-    //   // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
-    //   result: {
-    //     deadline: '2009-01-02T03:33:33.000Z',
-    //     content: '사전으로 입력된 모임입니다. 날짜, 시간관련 테스트를 위한 데이터입니다.',
-    //     currentParticipant: 1,
-    //     endAt: '2021-01-16T03:33:33.000Z',
-    //     hostId: 'HostFirst',
-    //     id: 1,
-    //     title: '사전입력모임',
-    //     maxParticipant: 2,
-    //     place: '헤이그라운드',
-    //     startAt: '2021-01-15T03:33:33.000Z',
-    //     updatedAt: '2021-01-17T05:04:39.000Z',
-    //   },
-    // });
+    expect(res.body?.result.hostId).toStrictEqual('HostFirst');
     done();
   });
 });
@@ -316,20 +330,6 @@ describe('Test delete /meetings/4', () => {
   });
 });
 
-// 등록 파라미터 중 날짜를 나타내는 파라미터의 타입이 다른 경우 - 이 경우는 프론트에서 처리해서 줘야할듯싶다.
-describe('Test post /meetings', () => {
-  test('register meeting with params of different type -> should return 500', async (done) => {
-    const res = await request(express).post('/meetings').send(meetingPostParamWithDifferentType);
-    expect(res.status).toBe(500);
-    expect(res.body).toStrictEqual({
-      // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
-      message: 'internal error',
-      type: 'internal',
-    });
-    done();
-  });
-});
-
 // 미팅 참가 신청 테스트 - 정상
 describe('Test post /meetings/2/users', () => {
   test('insert meeting participation with correct params -> should return ok', async (done) => {
@@ -342,6 +342,7 @@ describe('Test post /meetings/2/users', () => {
 describe('Test post /meetings/2/users', () => {
   test('insert meeting participation with correct params -> should return ok', async (done) => {
     const res = await request(express).post('/meetings/2/users').send({ userId: 'UserFirst' });
+    expect(res.body).toStrictEqual({});
     expect(res.status).toBe(201);
     done();
   });

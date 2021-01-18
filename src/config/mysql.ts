@@ -2,7 +2,7 @@ import { createPool } from 'mysql2/promise';
 import { dbConfig, dbConfigTest } from '../config/dbconfig';
 
 let pool: any = null;
-// run 환경별 디비 구성 변경
+// 환경별 디비 따로
 if (process.env.NODE_ENV === 'development') {
   pool = createPool(dbConfig);
 } else if (process.env.NODE_ENV === 'test') {
