@@ -1,27 +1,26 @@
-import { gql } from 'apollo-server';
+import { gql } from 'apollo-server-express';
 import { type } from 'os';
 
 const typeDefs = gql`
   type Query {
     meetings(hostId: String!, page: Page): [Meeting]!
     meeting(id: Int!): Meeting!
-    
+
     reviews(meetingId: Int!, userId: String!, page: Page): [Review]!
     review(id: Int!): Review!
   }
 
   type Mutation {
-    createMeeting ( input: MeetingPostParam ): Meeting!
-    updateMeeting ( id: Int!, input: MeetingPostParam ): Meeting!
-    deleteMeeting ( id: Int! ): Boolean!
-    createMeetingParticipation ( meetingId: Int, userId: String ): MeetingParticipation
-    deleteMeetingParticipation ( meetingId: Int, userId: String ): Boolean!
-    updateAttendance ( meetingId: Int!, userId: String! ): 
+    createMeeting(input: MeetingPostParam): PostReturn
+    updateMeeting(id: Int!, input: MeetingPostParam): Int
+    deleteMeeting(id: Int!): Int
+    createMeetingParticipation(meetingId: Int, userId: String): PostReturn
+    deleteMeetingParticipation(meetingId: Int, userId: String): Int!
+    updateAttendance(meetingId: Int!, userId: String!): Int
 
-    createReview ( input: ReviewPostParam ): Review!
-    updateReview ( id: Int!, input: ReviewPostParam ): Review!
-    deleteReview ( id: Int! ): Boolean!
-
+    createReview(input: ReviewPostParam): PostReturn
+    updateReview(id: Int!, input: ReviewPostParam): Int
+    deleteReview(id: Int!): Int
   }
 
   input MeetingPostParam {
@@ -37,38 +36,44 @@ const typeDefs = gql`
 
   input ReviewPostParam {
     meetingId: Int
-    userId: Stirng
+    userId: String
     title: String
     content: String
   }
 
-  type Meeting @key(fields: "id") {
-    "this is Meeting type!"
-    id: Int!,
-    hostId: String,
-    title: String,
-    content: Stirng,
-    startAt: String,
-    endAt: String,
-    deadline: String,
-    maxParticipant: Int,
-    place: Stirng,
-    updatedAt: String,
-    currentParticipant: Int
+  input Page {
+    "this is Page type!"
+    pageNum: Int
+    pageSize: Int
   }
 
-  type Review @key(fields: "id"){
+  type Meeting {
+    "this is Meeting type!"
+    id: Int!
+    hostId: String
+    title: String
+    content: String
+    startAt: String
+    endAt: String
+    deadline: String
+    maxParticipant: Int
+    place: String
+    updatedAt: Time
+    currentParticipant: Int!
+  }
+
+  type Review {
     "this is Review type!"
-    userId: String,
-    title: String,
-    content: String,
+    userId: String
+    title: String
+    content: String
     updatedAt: String
   }
 
-  type Page {
-    "this is Page type!"
-    pageNum: Int,
-    pageSize: Int
+  type PostReturn {
+    "this is PostReturn type!"
+    affectedRows: Int
+    insertedId: Int
   }
 `;
 

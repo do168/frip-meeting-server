@@ -94,7 +94,16 @@ export default class meetingRepository {
     const param = [hostId, offset, page.pageSize];
     const sql = `
     SELECT
-      id, title, deadline
+      id, 
+      hostId,
+      title, 
+      content,
+      startAt,
+      endAt,
+      deadline,
+      maxParticipant,
+      place,
+      updatedAt
     FROM
       meeting
     WHERE
@@ -111,7 +120,16 @@ export default class meetingRepository {
     const param = [offset, page.pageSize];
     const sql = `
     SELECT
-      id, title, deadline
+      id, 
+      hostId,
+      title, 
+      content,
+      startAt,
+      endAt,
+      deadline,
+      maxParticipant,
+      place,
+      updatedAt
     FROM
       meeting  
     WHERE

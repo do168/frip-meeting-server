@@ -11,7 +11,7 @@ const port = parseInt(process.env.PORT || '4080');
 app
   .run(port)
   .then(() => {
-    console.log(`Server is running on http://localhost:${port}`);
+    console.log(`Server is running on http://localhost:${port}/graphql`);
   })
   .catch((e) => {
     console.error(`Server error:`, e);
