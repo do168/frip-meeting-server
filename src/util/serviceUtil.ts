@@ -58,6 +58,7 @@ export default class ServiceUtil {
     }
   }
 
+  // Date 형식을 가독성 좋은 문자열로 변경
   public dateToStr(format: Date): string {
     const year = format.getFullYear();
 
@@ -84,6 +85,7 @@ export default class ServiceUtil {
     return year + '-' + month + '-' + date + ' ' + hour + ':' + min + ':' + sec;
   }
 
+  // Date 형식인지 체크
   public checkCorrectDateFormat(format: string): void {
     const datetimeRegexp = /[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1]) (2[0-3]|[01][0-9]):[0-5][0-9]/;
     if (!datetimeRegexp.test(format)) {

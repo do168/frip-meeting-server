@@ -14,12 +14,12 @@ import { ReviewPostParam } from '../model/input/ReviewPostParam';
 import { Page } from '../model/Page';
 
 export default class meetingService {
-  private meetingMapper: meetingRepository;
+  private meetingRepository: meetingRepository;
   private serviceUtil: ServiceUtil;
 
   // DI
-  constructor(meetingMapper: meetingRepository, serviceUtil: ServiceUtil) {
-    this.meetingMapper = meetingMapper;
+  constructor(meetingRepository: meetingRepository, serviceUtil: ServiceUtil) {
+    this.meetingRepository = meetingRepository;
     this.serviceUtil = serviceUtil;
   }
 
@@ -37,7 +37,7 @@ export default class meetingService {
     this.serviceUtil.checkCorrectDateFormat(meetingInfo.endAt);
     this.serviceUtil.checkCorrectDateFormat(meetingInfo.deadline);
 
-    const result = await this.meetingMapper.createMeeting(meetingInfo);
+    const result = await this.meetingRepository.createMeeting(meetingInfo);
 
     // affectedRow가 1이 아닌 경우 에러 리턴
     if (result.affectedRows != 1) {
@@ -58,7 +58,7 @@ export default class meetingService {
     if (this.serviceUtil.isEmpty(id)) {
       throw new NullException('id');
     }
-    const resultMeetingInfo: Meeting = await this.meetingMapper.getMeeting(id);
+    const resultMeetingInfo: Meeting = await this.meetingRepository.getMeeting(id);
     resultMeetingInfo.deadline = this.serviceUtil.dateToStr(new Date(resultMeetingInfo.deadline));
     resultMeetingInfo.startAt = this.serviceUtil.dateToStr(new Date(resultMeetingInfo.startAt));
     resultMeetingInfo.endAt = this.serviceUtil.dateToStr(new Date(resultMeetingInfo.endAt));
@@ -79,7 +79,7 @@ export default class meetingService {
 
     // hostId가 값이 없는 경우 전체 모임을 조회한다
     if (this.serviceUtil.isEmpty(hostId)) {
-      const result = await this.meetingMapper.listMeetings(page);
+      const result = await this.meetingRepository.listMeetings(page);
       for (let i in result) {
         result[i].deadline = this.serviceUtil.dateToStr(new Date(result[i].deadline));
       }
@@ -87,7 +87,7 @@ export default class meetingService {
     }
     // hostId가 값이 있는 경우 해당 호스트의 모임을 조회한다.
     else {
-      const result = await this.meetingMapper.listHostMeetings(hostId, page);
+      const result = await this.meetingRepository.listHostMeetings(hostId, page);
       for (let i in result) {
         result[i].deadline = this.serviceUtil.dateToStr(new Date(result[i].deadline));
       }
@@ -105,7 +105,7 @@ export default class meetingService {
     if (this.serviceUtil.isEmpty(id)) {
       throw new NullException('id');
     }
-    const result = await this.meetingMapper.deleteMeeting(id);
+    const result = await this.meetingRepository.deleteMeeting(id);
     // affectedRow가 1이 아닌 경우 에러 리턴
     if (result != 1) {
       throw new NotExistsException();
@@ -128,7 +128,7 @@ export default class meetingService {
     // meetinginfo 속성 null 체크
     this.serviceUtil.checkEmptyPostParam(meetingInfo, Object.keys(meetingInfo));
 
-    const result = await this.meetingMapper.updateMeeting(id, meetingInfo);
+    const result = await this.meetingRepository.updateMeeting(id, meetingInfo);
     // affectedRow가 1이 아닌 경우 에러 리턴
     if (result != 1) {
       throw new NotExistsException();
@@ -153,17 +153,17 @@ export default class meetingService {
     }
 
     // 참가인원 수가 최대 참가 가능 인원 수보다 작아야 하고, deadline보다 전에만 신청할 수 있다.
-    const resultMeetingInfo = await this.meetingMapper.getMeeting(id);
+    const resultMeetingInfo = await this.meetingRepository.getMeeting(id);
     if (!this.serviceUtil.isBeforeTime(Number(new Date()), Number(resultMeetingInfo.deadline), 0)) {
       throw new TimeLimitException('마감 시간이 지났습니다');
     }
 
     // 참가인원 수가 최대 참가 가능 인원 수보다 적어야 한다.
-    const cntCurrentParticipant = await this.meetingMapper.getCntMeetingParticipant(id);
+    const cntCurrentParticipant = await this.meetingRepository.getCntMeetingParticipant(id);
     if (cntCurrentParticipant >= Number(resultMeetingInfo.maxParticipant)) {
       throw new FullParticipationException();
     }
-    const result = await this.meetingMapper.createMeetingParticipation(id, userId);
+    const result = await this.meetingRepository.createMeetingParticipation(id, userId);
 
     // affectedRow가 1이 아닌 경우 에러 리턴
     if (result.affectedRows != 1) {
@@ -190,12 +190,12 @@ export default class meetingService {
     }
 
     // deadline 전에만 취소를 할 수 있다!
-    const resultMeetingInfo = await this.meetingMapper.getMeeting(id);
+    const resultMeetingInfo = await this.meetingRepository.getMeeting(id);
     if (!this.serviceUtil.isBeforeTime(Number(new Date()), Number(resultMeetingInfo.deadline), 0)) {
       throw new TimeLimitException('마감 시간이 지났습니다');
     }
 
-    const result = await this.meetingMapper.deleteMeetingParticipation(id, userId);
+    const result = await this.meetingRepository.deleteMeetingParticipation(id, userId);
     // affectedRow가 1이 아닌 경우 에러 리턴
     if (result != 1) {
       throw new NotExistsException();
@@ -220,12 +220,12 @@ export default class meetingService {
     }
 
     // 모임 시작 30분 후 조건 체크
-    const resultMeetingInfo = await this.meetingMapper.getMeeting(id);
+    const resultMeetingInfo = await this.meetingRepository.getMeeting(id);
     if (!this.serviceUtil.isAfterTime(Number(resultMeetingInfo['startAt']), Number(new Date()), 30)) {
       throw new TimeLimitException('정해진 시간 후부터 체크가 가능합니다');
     }
 
-    const result = await this.meetingMapper.updateMeetingAttendance(id, userId);
+    const result = await this.meetingRepository.updateMeetingAttendance(id, userId);
     // affectedRow가 1이 아닌 경우 에러 리턴
     if (result != 1) {
       throw new NotExistsException();
@@ -235,12 +235,12 @@ export default class meetingService {
 
   public async checkReviewCondition(reviewInfo: ReviewPostParam): Promise<boolean> {
     // 리뷰 조건 검사 1. 미팅 참가 신청한 유저인지 판별한다.
-    const isMeetingParticipant = await this.meetingMapper.isParticipant(reviewInfo.meetingId, reviewInfo.userId);
+    const isMeetingParticipant = await this.meetingRepository.isParticipant(reviewInfo.meetingId, reviewInfo.userId);
     if (!isMeetingParticipant) {
       return false;
     }
     // 리뷰 조건 검사 2. attendance 값을 이용해 판별한다.
-    const isMeetingAttendance = await this.meetingMapper.isAttendee(reviewInfo.meetingId, reviewInfo.userId);
+    const isMeetingAttendance = await this.meetingRepository.isAttendee(reviewInfo.meetingId, reviewInfo.userId);
     if (!isMeetingAttendance) {
       return false;
     }

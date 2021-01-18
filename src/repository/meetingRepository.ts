@@ -86,13 +86,9 @@ export default class meetingRepository {
       id = ? and status = 1
     `;
     const result = await mysql.connect(sql, param);
-    if (this.serviceUtil.isEmpty(result)) {
+    if (this.serviceUtil.isEmpty(result) || this.serviceUtil.isEmpty(result[0])) {
       throw new Error();
     }
-    // const dateParams = ['startAt', 'endAt', 'deadline', 'updatedAt'];
-    // for (let property in dateParams.keys) {
-    //   result[0][0].property = this.serviceUtil.dateToStr(result[0][0].property);
-    // }
     return result[0][0];
   }
 

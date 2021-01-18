@@ -13,11 +13,11 @@ import { PostReturn } from '../model/PostReturn';
 import { Page } from '../model/Page';
 
 export default class reviewService {
-  private reviewMapper: reviewRepository;
+  private reviewRepository: reviewRepository;
   private serviceUtil: ServiceUtil;
   // DI
-  constructor(reviewMapper: reviewRepository, serviceUtil: ServiceUtil) {
-    this.reviewMapper = reviewMapper;
+  constructor(reviewRepository: reviewRepository, serviceUtil: ServiceUtil) {
+    this.reviewRepository = reviewRepository;
     this.serviceUtil = serviceUtil;
   }
 
@@ -34,7 +34,7 @@ export default class reviewService {
     if (!condition) {
       throw new ReviewConditionException();
     }
-    const result = await this.reviewMapper.createReview(reviewInfo);
+    const result = await this.reviewRepository.createReview(reviewInfo);
     // affectedRow가 1이 아닌 경우 에러 리턴
     if (result.affectedRows != 1) {
       throw new NotCreationException();
@@ -53,7 +53,7 @@ export default class reviewService {
     if (this.serviceUtil.isEmpty(id)) {
       throw new NullException('id');
     }
-    const result = await this.reviewMapper.getReview(id);
+    const result = await this.reviewRepository.getReview(id);
     result.updatedAt = this.serviceUtil.dateToStr(new Date(result.updatedAt));
     return result;
   }
@@ -70,7 +70,7 @@ export default class reviewService {
     this.serviceUtil.checkEmptyPostParam(page, Object.keys(page));
     // user 필터 리뷰 리스트
     if (this.serviceUtil.isEmpty(meetingId) && !this.serviceUtil.isEmpty(userId)) {
-      const result = await this.reviewMapper.listUserReviews(userId, page);
+      const result = await this.reviewRepository.listUserReviews(userId, page);
       for (let i in result) {
         result[i].updatedAt = this.serviceUtil.dateToStr(new Date(result[i].updatedAt));
       }
@@ -78,7 +78,7 @@ export default class reviewService {
     }
     // meeting 필터 리뷰 리스트
     else if (!this.serviceUtil.isEmpty(meetingId) && this.serviceUtil.isEmpty(userId)) {
-      const result = await this.reviewMapper.listMeetingReviews(meetingId, page);
+      const result = await this.reviewRepository.listMeetingReviews(meetingId, page);
       for (let i in result) {
         result[i].updatedAt = this.serviceUtil.dateToStr(new Date(result[i].updatedAt));
       }
@@ -86,7 +86,7 @@ export default class reviewService {
     }
     // 전체 리뷰 리스트
     else {
-      const result = await this.reviewMapper.listReviews(page);
+      const result = await this.reviewRepository.listReviews(page);
       for (let i in result) {
         result[i].updatedAt = this.serviceUtil.dateToStr(new Date(result[i].updatedAt));
       }
@@ -104,7 +104,7 @@ export default class reviewService {
     if (this.serviceUtil.isEmpty(id)) {
       throw new NullException('id');
     }
-    const result = await this.reviewMapper.deleteReview(id);
+    const result = await this.reviewRepository.deleteReview(id);
     // affectedRow가 1이 아닌 경우 에러 리턴
     if (result != 1) {
       throw new NotExistsException();
@@ -126,7 +126,7 @@ export default class reviewService {
     // reviewInfo 빈 값 체크
     this.serviceUtil.checkEmptyPostParam(reviewInfo, Object.keys(reviewInfo));
 
-    const result = await this.reviewMapper.updateReview(id, reviewInfo);
+    const result = await this.reviewRepository.updateReview(id, reviewInfo);
     // affectedRow가 1이 아닌 경우 에러 리턴
     if (result != 1) {
       throw new NotExistsException();
