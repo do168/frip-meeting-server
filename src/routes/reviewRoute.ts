@@ -32,7 +32,7 @@ const serviceUtilInstance = new ServiceUtil();
 const reviewMapperInstance = new reviewRepository(serviceUtilInstance);
 const meetingMapperInstance = new meetingMapper(serviceUtilInstance);
 const meetingServiceInstance = new meetingService(meetingMapperInstance, serviceUtilInstance);
-const reviewServiceInstance = new reviewService(meetingMapperInstance, reviewMapperInstance, serviceUtilInstance);
+const reviewServiceInstance = new reviewService(reviewMapperInstance, serviceUtilInstance);
 
 /**
  * @swagger

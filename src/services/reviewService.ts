@@ -7,18 +7,11 @@ import meetingRepository from '../repository/meetingRepository';
 import { PostReturn } from '../model/PostReturn';
 import { Page } from '../model/Page';
 
-// pageSize - 파라미터로 받을지 고민
-const PAGE = 10;
-const PAGE_MEETING = 5;
-const PAGE_USER = 5;
-
 export default class reviewService {
-  private meetingMapper: meetingRepository;
   private reviewMapper: reviewRepository;
   private serviceUtil: ServiceUtil;
   // DI
-  constructor(meetingMapper: meetingRepository, reviewMapper: reviewRepository, serviceUtil: ServiceUtil) {
-    this.meetingMapper = meetingMapper;
+  constructor(reviewMapper: reviewRepository, serviceUtil: ServiceUtil) {
     this.reviewMapper = reviewMapper;
     this.serviceUtil = serviceUtil;
   }
