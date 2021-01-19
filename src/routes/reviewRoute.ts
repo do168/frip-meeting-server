@@ -7,6 +7,8 @@ import { ReviewPostParam } from '../model/input/ReviewPostParam';
 import meetingRepository from '../repository/meetingRepository';
 import meetingService from '../services/meetingService';
 import { Page } from '../model/Page';
+import { validateBodyParams, validatePathParams, validateQueryParams } from '../middleware/validateParamsRoute';
+
 /**
  * @swagger
  * tags:
@@ -55,6 +57,12 @@ const reviewServiceInstance = new reviewService(reviewRepositoryInstance, servic
 
 router.get(
   '/:id',
+  validatePathParams([
+    {
+      param_key: 'id',
+      type: 'number',
+    },
+  ]),
   wrap(async (req: Request, res: Response) => {
     const id = req.params.id ? Number(req.params.id) : 0;
     const result = await reviewServiceInstance.getReview(id);

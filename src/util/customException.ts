@@ -8,6 +8,16 @@ export class NullException extends Error {
   }
 }
 
+export class TypeException extends Error {
+  status: number;
+  constructor() {
+    super('type is different');
+    this.name = 'Client';
+    this.stack = Error().stack;
+    this.status = 400;
+  }
+}
+
 export class NotCreationException extends Error {
   status: number;
   constructor() {
