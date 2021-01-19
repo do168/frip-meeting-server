@@ -23,7 +23,7 @@ const meetingPostParam = {
   content: '미팅이 생성됐습니다. 테스트가 잘 진행될까 궁금하다',
   startAt: '2021-01-19 12:33:33',
   endAt: '2021-01-19 12:33:33',
-  deadline: '2021-01-19 12:33:33',
+  deadline: '2022-01-19 12:33:33',
   maxParticipant: 2,
   place: '울산 중구 태화동',
 };
@@ -43,10 +43,21 @@ const meetingPostParamWithDifferentType = {
   hostId: 'HostFirst',
   title: '날짜 타입 에러 테스트',
   content: '파라미터 타입 에러 테스트. 이 미팅은 생성되면 안됩니다',
-  startAt: '555',
+  startAt: '2009-01-04 12:33:33',
   endAt: '2009-01-04 12:33:33',
   deadline: '2009-01-02 12:33:33',
-  maxParticipant: 4,
+  maxParticipant: '이건아니지',
+  place: '울산 중구 태화동',
+};
+
+const meetingPostParamWithDifferentDateFormat = {
+  hostId: 'HostFirst',
+  title: '날짜 타입 에러 테스트',
+  content: '파라미터 타입 에러 테스트. 이 미팅은 생성되면 안됩니다',
+  startAt: '20090104 123333',
+  endAt: '2009-01-04 12:33:33',
+  deadline: '2009-01-02 12:33:33',
+  maxParticipant: 5,
   place: '울산 중구 태화동',
 };
 
@@ -152,10 +163,19 @@ describe('Test post /meetings', () => {
   });
 });
 
-// 모임 등록 테스트 4 - 등록 파라미터 중 날짜를 나타내는 파라미터의 형식이나 타입이 다른 경우
+// 모임 등록 테스트 4 - 등록 파라미터 중 타입이 다른 경우
 describe('Test post /meetings', () => {
   test('register meeting with params of different type -> should return 500', async (done) => {
     const res = await request(express).post('/meetings').send(meetingPostParamWithDifferentType);
+    expect(res.status).toBe(500);
+    done();
+  });
+});
+
+// 모임 등록 테스트 5- 등록 파라미터 중 날짜의 포맷이 정해진 포맷과 다른 경우
+describe('Test post /meetings', () => {
+  test('register meeting with params of different type -> should return 500', async (done) => {
+    const res = await request(express).post('/meetings').send(meetingPostParamWithDifferentDateFormat);
     expect(res.status).toBe(400);
     done();
   });
@@ -246,9 +266,9 @@ describe('Test get /meetings?hostId=&pageNum=2&pageSize=3', () => {
       // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
       result: [
         {
-          deadline: '2021-01-19 12:33:33',
           id: 4,
           title: "'따옴표' 포함된 생성테스트. Test에 올라가나요?",
+          deadline: '2021-01-19 12:33:33',
         },
       ],
     });
