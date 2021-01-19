@@ -1,5 +1,4 @@
 import { gql } from 'apollo-server-express';
-import { type } from 'os';
 
 const typeDefs = gql`
   type Query {
@@ -24,40 +23,40 @@ const typeDefs = gql`
   }
 
   input MeetingPostParam {
-    hostId: String
-    title: String
-    content: String
-    startAt: String
-    endAt: String
-    deadline: String
-    maxParticipant: Int
-    place: String
+    hostId: String!
+    title: String!
+    content: String!
+    startAt: String!
+    endAt: String!
+    deadline: String!
+    maxParticipant: Int!
+    place: String!
   }
 
   input ReviewPostParam {
-    meetingId: Int
-    userId: String
-    title: String
-    content: String
+    meetingId: Int!
+    userId: String!
+    title: String!
+    content: String!
   }
 
   input Page {
     "this is Page type!"
-    pageNum: Int
-    pageSize: Int
+    pageNum: Int!
+    pageSize: Int!
   }
 
   type Meeting {
     "this is Meeting type!"
     id: Int!
-    hostId: String
-    title: String
-    content: String
-    startAt: String
-    endAt: String
-    deadline: String
-    maxParticipant: Int
-    place: String
+    hostId: String!
+    title: String!
+    content: String!
+    startAt: String!
+    endAt: String!
+    deadline: String!
+    maxParticipant: Int!
+    place: String!
     updatedAt: String
     currentParticipant: Int!
   }
