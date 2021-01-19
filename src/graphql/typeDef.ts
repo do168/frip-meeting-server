@@ -30,7 +30,7 @@ const typeDefs = gql`
     startAt: String
     endAt: String
     deadline: String
-    maxParticipant: String
+    maxParticipant: Int
     place: String
   }
 
@@ -73,7 +73,7 @@ const typeDefs = gql`
   type PostReturn {
     "this is PostReturn type!"
     affectedRows: Int
-    insertedId: Int
+    insertId: Int
   }
 `;
 
