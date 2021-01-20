@@ -4,14 +4,6 @@ skinparam packageStyle rectangle
 actor administrator
 actor host
 actor user
-rectangle report {
-    administrator --> (see FAQ)
-    administrator --> (see no-show-report)
-    (increase user-no-show-info) .> (see no-show-report) : include
-    host --> (register FAQ)
-    user --> (register FAQ)
-    (increase user-no-show-info) -[hidden]- (register FAQ)
-}
 rectangle meeting {
     (register meeting) <-- host
     (update meeting) <-- host
