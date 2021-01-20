@@ -37,17 +37,13 @@ rectangle meeting {
 
 DB configuration
 ```
-# src/config/dbconfig.ts
+# .env.test
 
-# dbConfig (for development)
-user: "write your username"
-password: "write your password"
-database: "It must be exists already, so you can run dev"
-
-# dbConfigTest (for test)
-user: "write your username"
-password: "write your password"
-database: "frientripTest" (Do not modify it)
+PORT=4080
+DB_HOST=localhost
+DB_USERNAME='write your username'
+DB_PASSWORD='write your password'
+DB_DATABASE=frientripTest
 ```
 
 Install dependencies
