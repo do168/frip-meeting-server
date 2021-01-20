@@ -44,6 +44,14 @@ DB_HOST=localhost
 DB_USERNAME='write your username'
 DB_PASSWORD='write your password'
 DB_DATABASE=frientripTest
+
+# .env.development
+
+PORT=4080
+DB_HOST=localhost
+DB_USERNAME='write your username'
+DB_PASSWORD='write your password'
+DB_DATABASE=frip
 ```
 
 Install dependencies
