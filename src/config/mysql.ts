@@ -1,13 +1,7 @@
 import { createPool } from 'mysql2/promise';
-import { dbConfig, dbConfigTest } from '../config/dbconfig';
+import { dbConfig } from '../config/dbconfig';
 
-let pool: any = null;
-// 환경별 디비 따로
-if (process.env.NODE_ENV === 'development') {
-  pool = createPool(dbConfig);
-} else if (process.env.NODE_ENV === 'test') {
-  pool = createPool(dbConfigTest);
-}
+const pool = createPool(dbConfig);
 
 export class Mysql {
   public static connect = async (sql: string, args?: any): Promise<any> => {

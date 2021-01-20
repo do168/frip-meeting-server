@@ -1,9 +1,13 @@
-import config from 'config';
 import { App } from './App';
+import dotenv from 'dotenv';
+import path from 'path';
 
+dotenv.config({
+  path: path.resolve(process.cwd(), process.env.NODE_ENV == 'development' ? '.env.development' : '.env.test'),
+});
 const app: App = new App();
-const port = parseInt(process.env.PORT || config.get('server.port'));
 
+const port = parseInt(process.env.PORT || '4080');
 app
   .run(port)
   .then(() => {

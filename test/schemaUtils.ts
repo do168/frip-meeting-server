@@ -1,14 +1,18 @@
 import { readFileSync } from 'fs';
 import { createConnection } from 'mysql2/promise';
+import dotenv from 'dotenv';
+import path from 'path';
 // import { Mysql as mysql } from '../src/config/mysql';
-
+dotenv.config({
+  path: path.resolve(process.cwd(), process.env.NODE_ENV == 'development' ? '.env.development' : '.env.test'),
+});
 export async function createSchema(): Promise<void> {
   const con = await createConnection({
-    host: '127.0.0.1',
-    user: 'root',
-    password: '4531',
-    database: '',
-    connectionLimit: 10,
+    host: process.env.DB_HOST || '127.0.0.1',
+    user: process.env.DB_USERNAME || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_DATABASE,
+    connectionLimit: Number(process.env.DB_DB_CONNECTIONLIMIT || 10),
     multipleStatements: true,
   });
   await con.query('DROP DATABASE IF EXISTS frientripTest');

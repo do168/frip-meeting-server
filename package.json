@@ -45,6 +45,7 @@
   "homepage": "https://github.com/do168/ToyProject#readme",
   "dependencies": {
     "config": "^3.3.3",
+    "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "js-yaml": "^3.14.1",
     "mysql2": "^2.2.5",
