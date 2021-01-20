@@ -5,6 +5,7 @@ import meetingRepository from '../repository/meetingRepository';
 import ServiceUtil from '../util/serviceUtil';
 import { MeetingPostParam } from '../model/input/MeetingPostParam';
 import { Page } from '../model/Page';
+import { validateBodyParams, validatePathParams, validateQueryParams } from '../middleware/validateParamsRoute';
 /**
  * @swagger
  * tags:
@@ -68,6 +69,20 @@ const meetingServiceInstance = new meetingService(meetingRepositoryInstance, ser
 
 router.get(
   '/',
+  validateQueryParams([
+    {
+      param_key: 'pageNum',
+      type: 'number',
+    },
+    {
+      param_key: 'pageSize',
+      type: 'number',
+    },
+    {
+      param_key: 'hostId',
+      type: 'string',
+    },
+  ]),
   wrap(async (req: Request, res: Response) => {
     const hostId = req.query.hostId ? String(req.query.hostId) : '';
     const page: Page = {
@@ -100,6 +115,12 @@ router.get(
 
 router.get(
   '/:id',
+  validatePathParams([
+    {
+      param_key: 'id',
+      type: 'number',
+    },
+  ]),
   wrap(async (req: Request, res: Response) => {
     const id = req.params.id ? Number(req.params.id) : 0;
     const result = await meetingServiceInstance.getMeeting(id);
@@ -127,6 +148,40 @@ router.get(
 
 router.post(
   '/',
+  validateBodyParams([
+    {
+      param_key: 'hostId',
+      type: 'string',
+    },
+    {
+      param_key: 'title',
+      type: 'string',
+    },
+    {
+      param_key: 'content',
+      type: 'string',
+    },
+    {
+      param_key: 'startAt',
+      type: 'string',
+    },
+    {
+      param_key: 'endAt',
+      type: 'string',
+    },
+    {
+      param_key: 'deadline',
+      type: 'string',
+    },
+    {
+      param_key: 'maxParticipant',
+      type: 'number',
+    },
+    {
+      param_key: 'place',
+      type: 'string',
+    },
+  ]),
   wrap(async (req: Request, res: Response) => {
     const meetingInfo: MeetingPostParam = {
       hostId: req.body.hostId || '',
@@ -138,6 +193,7 @@ router.post(
       maxParticipant: req.body.maxParticipant || 0,
       place: req.body.place || '',
     };
+    console.log(meetingInfo.maxParticipant);
     const result = await meetingServiceInstance.createMeeting(meetingInfo);
     return res.status(201).json({ result });
   }),
@@ -164,6 +220,12 @@ router.post(
 
 router.delete(
   '/:id',
+  validatePathParams([
+    {
+      param_key: 'id',
+      type: 'number',
+    },
+  ]),
   wrap(async (req: Request, res: Response) => {
     const id = req.params.id ? Number(req.params.id) : 0;
 
@@ -196,6 +258,12 @@ router.delete(
 
 router.put(
   '/:id',
+  validatePathParams([
+    {
+      param_key: 'id',
+      type: 'number',
+    },
+  ]),
   wrap(async (req: Request, res: Response) => {
     const id = req.params.id ? Number(req.params.id) : 0;
 
@@ -243,6 +311,18 @@ router.put(
 
 router.post(
   '/:id/users',
+  validatePathParams([
+    {
+      param_key: 'id',
+      type: 'number',
+    },
+  ]),
+  validateBodyParams([
+    {
+      param_key: 'userId',
+      type: 'string',
+    },
+  ]),
   wrap(async (req: Request, res: Response) => {
     const id = req.params.id ? Number(req.params.id) : 0;
 
@@ -277,6 +357,16 @@ router.post(
 
 router.delete(
   '/:id/users/:userId',
+  validatePathParams([
+    {
+      param_key: 'id',
+      type: 'number',
+    },
+    {
+      param_key: 'userId',
+      type: 'string',
+    },
+  ]),
   wrap(async (req: Request, res: Response) => {
     const id = req.params.id ? Number(req.params.id) : 0;
 
@@ -311,6 +401,16 @@ router.delete(
  */
 router.put(
   '/:id/users/:userId',
+  validatePathParams([
+    {
+      param_key: 'meetingId',
+      type: 'number',
+    },
+    {
+      param_key: 'userId',
+      type: 'string',
+    },
+  ]),
   wrap(async (req: Request, res: Response) => {
     const id = req.params.id ? Number(req.params.id) : 0;
 

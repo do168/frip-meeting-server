@@ -105,6 +105,24 @@ router.get(
 
 router.get(
   '/',
+  validateQueryParams([
+    {
+      param_key: 'pageNum',
+      type: 'number',
+    },
+    {
+      param_key: 'pageSize',
+      type: 'number',
+    },
+    {
+      param_key: 'meetingId',
+      type: 'number',
+    },
+    {
+      param_key: 'userId',
+      type: 'string',
+    },
+  ]),
   wrap(async (req: Request, res: Response) => {
     const meetingId = req.query.meetingId ? Number(req.query.meetingId) : 0;
     const userId = req.query.userId ? String(req.query.userId) : '';
@@ -137,6 +155,24 @@ router.get(
 
 router.post(
   '/',
+  validateBodyParams([
+    {
+      param_key: 'meetingId',
+      type: 'number',
+    },
+    {
+      param_key: 'userId',
+      type: 'string',
+    },
+    {
+      param_key: 'title',
+      type: 'string',
+    },
+    {
+      param_key: 'content',
+      type: 'string',
+    },
+  ]),
   wrap(async (req: Request, res: Response) => {
     const reviewInfo: ReviewPostParam = {
       meetingId: req.body.meetingId || 0,
@@ -171,6 +207,12 @@ router.post(
 
 router.delete(
   '/:id',
+  validatePathParams([
+    {
+      param_key: 'id',
+      type: 'number',
+    },
+  ]),
   wrap(async (req: Request, res: Response) => {
     const id = req.params.id ? Number(req.params.id) : 0;
     const result = await reviewServiceInstance.deleteReview(id);
@@ -202,6 +244,12 @@ router.delete(
 
 router.put(
   '/:id',
+  validatePathParams([
+    {
+      param_key: 'id',
+      type: 'number',
+    },
+  ]),
   wrap(async (req: Request, res: Response) => {
     const id = req.params.id ? Number(req.params.id) : 0;
 

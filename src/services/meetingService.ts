@@ -80,7 +80,7 @@ export default class meetingService {
     // hostId가 값이 없는 경우 전체 모임을 조회한다
     if (this.serviceUtil.isEmpty(hostId)) {
       const result = await this.meetingRepository.listMeetings(page);
-      for (let i in result) {
+      for (const i in result) {
         result[i].deadline = this.serviceUtil.dateToStr(new Date(result[i].deadline));
       }
       return result;
@@ -88,7 +88,7 @@ export default class meetingService {
     // hostId가 값이 있는 경우 해당 호스트의 모임을 조회한다.
     else {
       const result = await this.meetingRepository.listHostMeetings(hostId, page);
-      for (let i in result) {
+      for (const i in result) {
         result[i].deadline = this.serviceUtil.dateToStr(new Date(result[i].deadline));
       }
       return result;

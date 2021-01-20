@@ -1,6 +1,6 @@
 export class NullException extends Error {
   status: number;
-  constructor(value: any) {
+  constructor(value: unknown) {
     super(value + ' cannot be null');
     this.name = 'Client';
     this.stack = Error().stack;
@@ -85,5 +85,15 @@ export class DateFormatException extends Error {
     this.name = 'Client';
     this.stack = Error().stack;
     this.status = 400;
+  }
+}
+
+export class DBException extends Error {
+  status: number;
+  constructor() {
+    super('DB에서 알 수 없는 오류가 발생하였습니다');
+    this.name = 'Server';
+    this.stack = Error().stack;
+    this.status = 500;
   }
 }

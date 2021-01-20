@@ -1,4 +1,3 @@
-import { Mysql as mysql } from '../config/mysql';
 import { ReviewPostParam } from '../model/input/ReviewPostParam';
 import { Review } from '../model/Review';
 import reviewRepository from '../repository/reviewRepository';
@@ -71,7 +70,7 @@ export default class reviewService {
     // user 필터 리뷰 리스트
     if (this.serviceUtil.isEmpty(meetingId) && !this.serviceUtil.isEmpty(userId)) {
       const result = await this.reviewRepository.listUserReviews(userId, page);
-      for (let i in result) {
+      for (const i in result) {
         result[i].updatedAt = this.serviceUtil.dateToStr(new Date(result[i].updatedAt));
       }
       return result;
@@ -79,7 +78,7 @@ export default class reviewService {
     // meeting 필터 리뷰 리스트
     else if (!this.serviceUtil.isEmpty(meetingId) && this.serviceUtil.isEmpty(userId)) {
       const result = await this.reviewRepository.listMeetingReviews(meetingId, page);
-      for (let i in result) {
+      for (const i in result) {
         result[i].updatedAt = this.serviceUtil.dateToStr(new Date(result[i].updatedAt));
       }
       return result;
@@ -87,7 +86,7 @@ export default class reviewService {
     // 전체 리뷰 리스트
     else {
       const result = await this.reviewRepository.listReviews(page);
-      for (let i in result) {
+      for (const i in result) {
         result[i].updatedAt = this.serviceUtil.dateToStr(new Date(result[i].updatedAt));
       }
       return result;

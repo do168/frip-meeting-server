@@ -42,10 +42,8 @@ export default class ServiceUtil {
 
   public isBeforeTime(comparing: number, standard: number, conditionTime: number): boolean {
     if (standard - comparing >= conditionTime) {
-      console.log(standard, comparing, '기준 시간 전입니다');
       return true;
     } else {
-      console.log(standard, comparing, '기준 시간 후입니다');
       return false;
     }
   }

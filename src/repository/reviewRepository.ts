@@ -3,6 +3,7 @@ import { ReviewPostParam } from '../model/input/ReviewPostParam';
 import { Page } from '../model/Page';
 import { PostReturn } from '../model/PostReturn';
 import { Review } from '../model/Review';
+import { DBException } from '../util/customException';
 import ServiceUtil from '../util/serviceUtil';
 
 export default class reviewRepository {
@@ -28,7 +29,7 @@ export default class reviewRepository {
     `;
     const result = await mysql.connect(sql, param);
     if (this.serviceUtil.isEmpty(result)) {
-      throw new Error();
+      throw new DBException();
     }
     const postReturnModel: PostReturn = {
       affectedRows: result[0].affectedRows || 0,
@@ -56,7 +57,7 @@ export default class reviewRepository {
     `;
     const result = await mysql.connect(sql, param);
     if (this.serviceUtil.isEmpty(result) || this.serviceUtil.isEmpty(result[0])) {
-      throw new Error();
+      throw new DBException();
     }
     return result[0][0];
   }
@@ -78,7 +79,7 @@ export default class reviewRepository {
     `;
     const result = await mysql.connect(sql, param);
     if (this.serviceUtil.isEmpty(result)) {
-      throw new Error();
+      throw new DBException();
     }
     return result[0];
   }
@@ -100,7 +101,7 @@ export default class reviewRepository {
     `;
     const result = await mysql.connect(sql, param);
     if (this.serviceUtil.isEmpty(result)) {
-      throw new Error();
+      throw new DBException();
     }
     return result[0];
   }
@@ -122,7 +123,7 @@ export default class reviewRepository {
     `;
     const result = await mysql.connect(sql, param);
     if (this.serviceUtil.isEmpty(result)) {
-      throw new Error();
+      throw new DBException();
     }
     return result[0];
   }
@@ -139,7 +140,7 @@ export default class reviewRepository {
     `;
     const result = await mysql.connect(sql, param);
     if (this.serviceUtil.isEmpty(result)) {
-      throw new Error();
+      throw new DBException();
     }
     return result[0].affectedRows;
   }
@@ -157,7 +158,7 @@ export default class reviewRepository {
     `;
     const result = await mysql.connect(sql, param);
     if (this.serviceUtil.isEmpty(result)) {
-      throw new Error();
+      throw new DBException();
     }
     return result[0].affectedRows;
   }

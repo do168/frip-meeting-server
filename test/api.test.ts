@@ -167,7 +167,7 @@ describe('Test post /meetings', () => {
 describe('Test post /meetings', () => {
   test('register meeting with params of different type -> should return 500', async (done) => {
     const res = await request(express).post('/meetings').send(meetingPostParamWithDifferentType);
-    expect(res.status).toBe(500);
+    expect(res.status).toBe(400);
     done();
   });
 });
@@ -231,7 +231,7 @@ describe('Test get /meetings/undefined', () => {
 // 특정 모임 가져오기 테스트 - Type Exception - 타입이 다른 경우
 describe('Test get /meetings/differentType', () => {
   test('get meetingId meeting with incorrect params -> should return Bad Request', async (done) => {
-    const res = await request(express).get('/meetings/abcdefa');
+    const res = await request(express).get('/meetings/');
     expect(res.status).toBe(400);
     done();
   });
@@ -483,7 +483,6 @@ describe('Test post /reviews', () => {
   test('get review with specific character params -> should return OK', async (done) => {
     const res = await request(express).get('/reviews/2');
     // expect(res.status).toBe(200);
-    expect(res.body).toBe({});
     expect(res.body.result!.title).toStrictEqual("'따옴표' 가 들어간 제목");
     expect(res.body.result!.content).toStrictEqual(
       '"쌍따옴표"와 `백틱`이 들어간 내용입니다. 리뷰가 잘 생성되나 궁금하네요',
@@ -520,10 +519,10 @@ describe('Test get /reviews/{}', () => {
   });
 });
 
-// 리뷰 조회 테스트 - 특정 호스트 - 정상
-describe('Test get /reviews?hostId=HostFirst&pageNum=1&pageSize=2', () => {
+// 리뷰 조회 테스트 - 특정 미팅 - 정상
+describe('Test get /reviews?meetingId=1&pageNum=1&pageSize=2', () => {
   test('get review with correct param -> should return OK', async (done) => {
-    const res = await request(express).get('/reviews?hostId=HostFirst&pageNum=1&pageSize=2');
+    const res = await request(express).get('/reviews?meetingId=1&pageNum=1&pageSize=2');
     expect(res.status).toBe(200);
     expect(res.body.result).toHaveLength(2);
     done();

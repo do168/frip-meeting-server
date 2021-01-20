@@ -4,6 +4,7 @@ import { Meeting } from '../model/Meeting';
 import ServiceUtil from '../util/serviceUtil';
 import { PostReturn } from '../model/PostReturn';
 import { Page } from '../model/Page';
+import { DBException } from '../util/customException';
 
 export default class meetingRepository {
   // DI
@@ -46,7 +47,7 @@ export default class meetingRepository {
     )`;
     const result = await mysql.connect(sql, param);
     if (this.serviceUtil.isEmpty(result)) {
-      throw new Error();
+      throw new DBException();
     }
     const postReturnModel: PostReturn = {
       affectedRows: result[0].affectedRows || 0,
@@ -87,7 +88,7 @@ export default class meetingRepository {
     `;
     const result = await mysql.connect(sql, param);
     if (this.serviceUtil.isEmpty(result) || this.serviceUtil.isEmpty(result[0])) {
-      throw new Error();
+      throw new DBException();
     }
     return result[0][0];
   }
@@ -124,7 +125,7 @@ export default class meetingRepository {
     `;
     const result = await mysql.connect(sql, param);
     if (this.serviceUtil.isEmpty(result)) {
-      throw new Error();
+      throw new DBException();
     }
     return result[0];
   }
@@ -142,7 +143,7 @@ export default class meetingRepository {
     `;
     const result = await mysql.connect(sql, param);
     if (this.serviceUtil.isEmpty(result)) {
-      throw new Error();
+      throw new DBException();
     }
     return result[0].affectedRows;
   }
@@ -176,7 +177,7 @@ export default class meetingRepository {
     const result = await mysql.connect(sql, param);
 
     if (this.serviceUtil.isEmpty(result)) {
-      throw new Error();
+      throw new DBException();
     }
     console.log('업데이트 로그 : ', result[0]);
     return result[0].affectedRows;
@@ -241,7 +242,7 @@ export default class meetingRepository {
     const result = await mysql.connect(sql, param);
 
     if (this.serviceUtil.isEmpty(result)) {
-      throw new Error();
+      throw new DBException();
     }
     return result[0].affectedRows;
   }
@@ -261,7 +262,7 @@ export default class meetingRepository {
     `;
     const result = await mysql.connect(sql, param);
     if (this.serviceUtil.isEmpty(result)) {
-      throw new Error();
+      throw new DBException();
     }
     return result[0][0].CntMeetingParticipant;
   }
@@ -281,7 +282,7 @@ export default class meetingRepository {
     `;
     const result = await mysql.connect(sql, param);
     if (this.serviceUtil.isEmpty(result)) {
-      throw new Error();
+      throw new DBException();
     }
     return result[0][0].cnt === 1;
   }
@@ -301,7 +302,7 @@ export default class meetingRepository {
     `;
     const result = await mysql.connect(sql, param);
     if (this.serviceUtil.isEmpty(result)) {
-      throw new Error();
+      throw new DBException();
     }
     return result[0][0].attendance === 1;
   }
