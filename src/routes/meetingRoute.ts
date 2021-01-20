@@ -193,7 +193,6 @@ router.post(
       maxParticipant: req.body.maxParticipant || 0,
       place: req.body.place || '',
     };
-    console.log(meetingInfo.maxParticipant);
     const result = await meetingServiceInstance.createMeeting(meetingInfo);
     return res.status(201).json({ result });
   }),

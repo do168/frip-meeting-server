@@ -154,11 +154,11 @@ describe('Test post /meetings', () => {
   test('get meetingId meeting with correct params(include Quotes, Double Qoutes, BackTick) -> should return ok', async (done) => {
     const res = await request(express).get('/meetings/4');
     expect(res.status).toBe(200);
-    expect(res.body.result!.title).toStrictEqual("'따옴표' 포함된 생성테스트. Test에 올라가나요?");
-    expect(res.body.result!.content).toStrictEqual(
+    expect(res.body.result.title).toStrictEqual("'따옴표' 포함된 생성테스트. Test에 올라가나요?");
+    expect(res.body.result.content).toStrictEqual(
       '"쌍따옴표" 미팅이 생성됐습니다. 이것도 올라가야 하는데요. 테스트가 잘 진행될까 궁금하다',
     );
-    expect(res.body.result!.place).toStrictEqual('`백틱` 문자입니다. 이것도 올라가야 합니다 울산 중구 태화동');
+    expect(res.body.result.place).toStrictEqual('`백틱` 문자입니다. 이것도 올라가야 합니다 울산 중구 태화동');
     done();
   });
 });
@@ -380,7 +380,7 @@ describe('Test post /meetings/2/users', () => {
 describe('Test post /meetings/2/users', () => {
   test('insert meeting participation with correct params -> should return ok', async (done) => {
     const res = await request(express).post('/meetings/2/users').send({ userId: 'UserFirst' });
-    expect(res.body.result!.affectedRows).toBe(1);
+    expect(res.body.result.affectedRows).toBe(1);
     expect(res.status).toBe(201);
     done();
   });
@@ -483,8 +483,8 @@ describe('Test post /reviews', () => {
   test('get review with specific character params -> should return OK', async (done) => {
     const res = await request(express).get('/reviews/2');
     // expect(res.status).toBe(200);
-    expect(res.body.result!.title).toStrictEqual("'따옴표' 가 들어간 제목");
-    expect(res.body.result!.content).toStrictEqual(
+    expect(res.body.result.title).toStrictEqual("'따옴표' 가 들어간 제목");
+    expect(res.body.result.content).toStrictEqual(
       '"쌍따옴표"와 `백틱`이 들어간 내용입니다. 리뷰가 잘 생성되나 궁금하네요',
     );
     done();

@@ -179,7 +179,6 @@ export default class meetingRepository {
     if (this.serviceUtil.isEmpty(result)) {
       throw new DBException();
     }
-    console.log('업데이트 로그 : ', result[0]);
     return result[0].affectedRows;
   }
 
