@@ -8,11 +8,11 @@ dotenv.config({
 });
 export async function createSchema(): Promise<void> {
   const con = await createConnection({
-    host: process.env.DB_HOST || '127.0.0.1',
+    host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USERNAME || 'root',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_DATABASE,
-    connectionLimit: Number(process.env.DB_DB_CONNECTIONLIMIT || 10),
+    connectionLimit: 10,
     multipleStatements: true,
   });
   await con.query('DROP DATABASE IF EXISTS frientripTest');
