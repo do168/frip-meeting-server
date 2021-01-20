@@ -8,5 +8,5 @@ export interface Meeting {
   maxParticipant: number;
   place: string;
   updatedAt: string;
-  currentParticipant: number;
+  cntCurrentParticipant: number;
 }

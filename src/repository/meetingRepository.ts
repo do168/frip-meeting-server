@@ -75,7 +75,7 @@ export default class meetingRepository {
         count(*)
       FROM
         participatesMeeting
-      WHERE meetingId = ?) as currentParticipant   
+      WHERE meetingId = ?) as cntCurrentParticipant   
     FROM
       meeting
     WHERE
