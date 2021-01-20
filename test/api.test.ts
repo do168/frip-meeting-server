@@ -510,10 +510,10 @@ describe('Test get /reviews/1', () => {
   });
 });
 
-// 리뷰 조회 테스트 - 특정 리뷰 - path undefined
-describe('Test get /reviews/{}', () => {
-  test('post review with incorrect param -> should return 404', async (done) => {
-    const res = await request(express).get('/reviews/eqwe');
+// 리뷰 조회 테스트 - 특정 리뷰 - path Type error (number -> string)
+describe('Test get /reviews/-1', () => {
+  test('get review with incorrect param -> should return 400', async (done) => {
+    const res = await request(express).get('/reviews/-1');
     expect(res.status).toBe(400);
     done();
   });

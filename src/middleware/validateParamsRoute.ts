@@ -62,7 +62,7 @@ const checkParamPresent = function (reqParams: any, paramObj: any) {
 const checkParamType = function aysnc(reqParam: any, paramObj: any) {
   // 숫자인 param 체크
   if (paramObj.type === 'number') {
-    if (isNaN(Number(reqParam))) {
+    if (isNaN(Number(reqParam)) || Number(reqParam) < 0) {
       throw new TypeException();
     }
   } else {
