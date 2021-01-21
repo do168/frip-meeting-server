@@ -8,6 +8,7 @@ import reviewRepository from '../repository/reviewRepository';
 import meetingService from '../services/meetingService';
 import reviewService from '../services/reviewService';
 import ServiceUtil from '../util/serviceUtil';
+import DataLoader from 'dataloader';
 
 const serviceUtilInstance = new ServiceUtil();
 const meetingRepositoryInstance = new meetingRepository(serviceUtilInstance);

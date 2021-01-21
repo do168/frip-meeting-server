@@ -41,6 +41,7 @@ export default class reviewRepository {
     const param = [id];
     const sql = `
     SELECT
+      id,
       userId,
       title,
       content,
@@ -62,6 +63,7 @@ export default class reviewRepository {
     const param = [meetingId, offset, page.pageSize];
     const sql = `
     SELECT
+      id,
       userId,
       title,
       content,
@@ -84,6 +86,7 @@ export default class reviewRepository {
     const param = [userId, offset, page.pageSize];
     const sql = `
     select
+      id,
       userId,
       title,
       content,
@@ -106,6 +109,7 @@ export default class reviewRepository {
     const param = [offset, page.pageSize];
     const sql = `
     select
+      id,
       userId,
       title,
       content,

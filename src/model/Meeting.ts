@@ -1,4 +1,5 @@
 export interface Meeting {
+  id: number;
   hostId: string;
   title: string;
   content: string;
