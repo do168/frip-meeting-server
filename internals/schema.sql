@@ -5,7 +5,7 @@
 CREATE SCHEMA IF NOT EXISTS `frip` DEFAULT CHARACTER SET utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `frip`.`host` (
-  `id` varchar(45) NOT NULL COMMENT '호스트ID',
+  `id` varchar(16) NOT NULL COMMENT '호스트ID',
   `password` varchar(45) NOT NULL COMMENT '호스트 비밀번호',
   `nickname` varchar(45) NOT NULL COMMENT '호스트 닉네임',
   `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT 'soft delete',
@@ -30,9 +30,68 @@ CREATE TABLE IF NOT EXISTS `frip`.`meeting` (
   CONSTRAINT `fk_meeting_host` FOREIGN KEY (`hostId`) REFERENCES `host` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-INSERT INTO `frip`.`host` (`id`, `password`, `nickname`)
-VALUES ('testid', '1111', '테스트계정');
+CREATE TABLE IF NOT EXISTS `frip`.`user` (
+  `id` varchar(16) NOT NULL,
+  `password` varchar(32) NOT NULL,
+  `nickname` varchar(16) NOT NULL,
+  `cntNoshow` varchar(45) NOT NULL DEFAULT '0',
+  `status` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE IF NOT EXISTS `frip`.`review` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '리뷰 ID',
+  `meetingId` int(11) NOT NULL COMMENT '미팅ID',
+  `userId` varchar(16) NOT NULL COMMENT '유저ID',
+  `title` varchar(45) NOT NULL COMMENT '후기 제목',
+  `content` varchar(45) NOT NULL COMMENT '후기 내용',
+  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시간',
+  `updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '갱신 시간',
+  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT 'soft delete',
+  PRIMARY KEY (`id`),
+  KEY `fk_review_meeting1_idx` (`meetingId`),
+  KEY `fk_review_user1_idx` (`userId`),
+  CONSTRAINT `fk_review_meeting1` FOREIGN KEY (`meetingId`) REFERENCES `meeting` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_review_user1` FOREIGN KEY (`userId`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `frip`.`participatesMeeting` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '참가 ID',
+  `meetingId` int(11) NOT NULL COMMENT '모임ID',
+  `userId` varchar(16) NOT NULL COMMENT '모임 참가 유저 ID',
+  `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '참가 신청 시간',
+  `attendance` tinyint(1) NOT NULL DEFAULT '1' COMMENT '해당 모임 no-show 여부',
+  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT 'soft delete',
+  PRIMARY KEY (`id`),
+  KEY `fk_participatesMeeting_meeting` (`meetingId`),
+  KEY `fk_participatesMeeting_userId_idx` (`userId`),
+  CONSTRAINT `fk_participatesMeeting_meeting` FOREIGN KEY (`meetingId`) REFERENCES `meeting` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_participatesMetting_userId` FOREIGN KEY (`userId`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8;
+
+
+
+INSERT INTO `frip`.`host` (`id`, `password`, `nickname`)
+VALUES ('HostFirst', '1111', '호스트 테스트 계정 1');
+
+INSERT INTO `frip`.`host` (`id`, `password`, `nickname`)
+VALUES ('HostSecond', '2222', '호스트 테스트 계정 2');
+
+INSERT INTO `frip`.`user` (`id`, `password`, `nickname`)
+VALUES ('UserFirst', '1111', '유저 테스트 계정 1');
+
+INSERT INTO `frip`.`user` (`id`, `password`, `nickname`)
+VALUES ('UserSecond', '2222', '유저 테스트 계정 2');
+
+INSERT INTO `frip`.`user` (`id`, `password`, `nickname`)
+VALUES ('UserThird', '3333', '유저 테스트 계정 3');
+
+INSERT INTO `frip`.`meeting` (`hostId`, `title`, `content`, `startAt`, `endAt`, `deadline`, `maxParticipant`, `place`)
+VALUES ('HostFirst', '사전입력모임', '사전으로 입력된 모임입니다. 날짜, 시간관련 테스트를 위한 데이터입니다.', '2021-01-15 12:33:33', '2021-01-16 12:33:33',
+'2009-01-02 12:33:33', 2, '헤이그라운드');
+
+INSERT INTO `frip`.`participatesMeeting` (`meetingId`, `userId`)
+VALUES (1, 'UserFirst');
 
 -- INSERT INTO `meeting` (`id`, `name`, `sort`)
 -- VALUES (29, '등산', 0),
