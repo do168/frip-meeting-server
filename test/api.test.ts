@@ -380,7 +380,6 @@ describe('Test post /meetings/2/users', () => {
 describe('Test post /meetings/2/users', () => {
   test('insert meeting participation with correct params -> should return ok', async (done) => {
     const res = await request(express).post('/meetings/2/users').send({ userId: 'UserFirst' });
-    expect(res.body.result.affectedRows).toBe(1);
     expect(res.status).toBe(201);
     done();
   });

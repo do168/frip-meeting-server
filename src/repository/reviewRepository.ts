@@ -1,7 +1,6 @@
 import { Mysql as mysql } from '../config/mysql';
 import { ReviewPostParam } from '../model/input/ReviewPostParam';
 import { Page } from '../model/Page';
-import { PostReturn } from '../model/PostReturn';
 import { Review } from '../model/Review';
 import { DBException } from '../util/customException';
 import ServiceUtil from '../util/serviceUtil';
@@ -11,7 +10,7 @@ export default class reviewRepository {
   constructor(serviceUtil: ServiceUtil) {
     this.serviceUtil = serviceUtil;
   }
-  public async createReview(reviewInfo: ReviewPostParam): Promise<PostReturn> {
+  public async createReview(reviewInfo: ReviewPostParam): Promise<number> {
     const param = [reviewInfo.meetingId, reviewInfo.userId, reviewInfo.title, reviewInfo.content];
     const sql = `
     insert into review(
@@ -31,11 +30,7 @@ export default class reviewRepository {
     if (this.serviceUtil.isEmpty(result)) {
       throw new DBException();
     }
-    const postReturnModel: PostReturn = {
-      affectedRows: result[0].affectedRows || 0,
-      insertId: result[0].insertId || 0,
-    };
-    return postReturnModel;
+    return result[0].insertId || 0;
   }
 
   /* select query 시 리턴 값은

@@ -8,7 +8,6 @@ import {
   ReviewConditionException,
   NotCreationException,
 } from '../util/customException';
-import { PostReturn } from '../model/PostReturn';
 import { Page } from '../model/Page';
 
 export default class reviewService {
@@ -25,7 +24,7 @@ export default class reviewService {
    * @param param Review [meetingId, userId, title, content]
    * @return [ afftectedRow, insertId ]
    */
-  public async createReview(condition: boolean, reviewInfo: ReviewPostParam): Promise<PostReturn> {
+  public async createReview(condition: boolean, reviewInfo: ReviewPostParam): Promise<number> {
     // reviewInfo 빈값 체크
     this.serviceUtil.checkEmptyPostParam(reviewInfo, Object.keys(reviewInfo));
 
@@ -34,8 +33,8 @@ export default class reviewService {
       throw new ReviewConditionException();
     }
     const result = await this.reviewRepository.createReview(reviewInfo);
-    // affectedRow가 1이 아닌 경우 에러 리턴
-    if (result.affectedRows != 1) {
+    // result가 양수가 아닌 경우 에러 리턴
+    if (result < 1) {
       throw new NotCreationException();
     }
     return result;

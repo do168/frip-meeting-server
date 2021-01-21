@@ -2,7 +2,6 @@ import { Mysql as mysql } from '../config/mysql';
 import { MeetingPostParam } from '../model/input/MeetingPostParam';
 import { Meeting } from '../model/Meeting';
 import ServiceUtil from '../util/serviceUtil';
-import { PostReturn } from '../model/PostReturn';
 import { Page } from '../model/Page';
 import { DBException } from '../util/customException';
 
@@ -14,7 +13,7 @@ export default class meetingRepository {
   }
 
   // insert
-  public async createMeeting(meetingInfo: MeetingPostParam): Promise<PostReturn> {
+  public async createMeeting(meetingInfo: MeetingPostParam): Promise<number> {
     const param = [
       meetingInfo.hostId,
       meetingInfo.title,
@@ -49,11 +48,7 @@ export default class meetingRepository {
     if (this.serviceUtil.isEmpty(result)) {
       throw new DBException();
     }
-    const postReturnModel: PostReturn = {
-      affectedRows: result[0].affectedRows || 0,
-      insertId: result[0].insertId || 0,
-    };
-    return postReturnModel;
+    return result[0].insertId || 0;
   }
 
   /* select query 시 리턴 값은
@@ -183,7 +178,7 @@ export default class meetingRepository {
   }
 
   // insert
-  public async createMeetingParticipation(id: number, userId: string): Promise<PostReturn> {
+  public async createMeetingParticipation(id: number, userId: string): Promise<number> {
     const param = [id, userId];
     const sql = `
     insert into participatesMeeting(
@@ -200,11 +195,7 @@ export default class meetingRepository {
     if (this.serviceUtil.isEmpty(result)) {
       throw new Error();
     }
-    const postReturnModel: PostReturn = {
-      affectedRows: result[0].affectedRows || 0,
-      insertId: result[0].insertId || 0,
-    };
-    return postReturnModel;
+    return result[0].insertId || 0;
   }
 
   // delete

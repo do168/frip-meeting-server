@@ -9,7 +9,6 @@ import {
   FullParticipationException,
   NotCreationException,
 } from '../util/customException';
-import { PostReturn } from '../model/PostReturn';
 import { ReviewPostParam } from '../model/input/ReviewPostParam';
 import { Page } from '../model/Page';
 
@@ -28,7 +27,7 @@ export default class meetingService {
    * @param param 미팅 파라미터 [제목, 내용, 시작시간, 종료시간, 마감시간, 참가최대인원, 장소]
    * @return [ affectedRow, insertId ]
    */
-  public async createMeeting(meetingInfo: MeetingPostParam): Promise<PostReturn> {
+  public async createMeeting(meetingInfo: MeetingPostParam): Promise<number> {
     // meetingInfo 빈 값 체크
     this.serviceUtil.checkEmptyPostParam(meetingInfo, Object.keys(meetingInfo));
 
@@ -39,9 +38,8 @@ export default class meetingService {
 
     const result = await this.meetingRepository.createMeeting(meetingInfo);
 
-    // affectedRow가 1이 아닌 경우 에러 리턴
-    if (result.affectedRows != 1) {
-      console.log(result.affectedRows);
+    // reusult가 양수가 아닌 경우 에러 리턴
+    if (result < 1) {
       throw new NotCreationException();
     }
     return result;
@@ -142,7 +140,7 @@ export default class meetingService {
    * @param userId 참가하는 유저 ID
    * @return [ affectedRow, insertId ]
    */
-  public async createMeetingParticipation(id: number, userId: string): Promise<PostReturn> {
+  public async createMeetingParticipation(id: number, userId: string): Promise<number> {
     // id 빈 값 체크
     if (this.serviceUtil.isEmpty(id)) {
       throw new NullException('id');
@@ -165,8 +163,8 @@ export default class meetingService {
     }
     const result = await this.meetingRepository.createMeetingParticipation(id, userId);
 
-    // affectedRow가 1이 아닌 경우 에러 리턴
-    if (result.affectedRows != 1) {
+    // result가 양수가 아닌 경우 에러 리턴
+    if (result < 1) {
       throw new NotCreationException();
     }
     return result;
