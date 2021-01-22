@@ -9,7 +9,7 @@ import {
 import { Host } from '../model/Host';
 import hostRepository from '../repository/hostRepository';
 
-export default class meetingService {
+export default class hostService {
   private serviceUtil: ServiceUtil;
   private hostRepository: hostRepository;
   // DI
@@ -28,7 +28,11 @@ export default class meetingService {
       throw new NullException('id');
     }
     const resultHostInfo: Host = await this.hostRepository.getHost(id);
-
     return resultHostInfo;
+  }
+
+  public async getAllHost(hostIds: readonly string[]): Promise<Host[]> {
+    const result = await this.hostRepository.getAllHost(hostIds);
+    return result;
   }
 }

@@ -11,7 +11,7 @@ import ServiceUtil from '../util/serviceUtil';
 import DataLoader from 'dataloader';
 import { Host } from '../model/Host';
 import { User } from '../model/User';
-import { Connection } from '../model/MeetingConnection';
+import { Connection } from '../model/Connection';
 import hostRepository from '../repository/hostRepository';
 import hostService from '../services/hostService';
 import userRepository from '../repository/userRepository';
@@ -27,9 +27,21 @@ const reviewServiceInstance = new reviewService(reviewRepositoryInstance, servic
 const hostServiceInstance = new hostService(hostRepositoryInstance, serviceUtilInstance);
 const userServiceInstance = new userService(userRepositoryInstance, serviceUtilInstance);
 
-const reviewLoader = new DataLoader(async (meetingIds: readonly number[]) => {
+// 모임에 작성된 리뷰 리스트 dataloader
+const meetingConnectedReviewLoader = new DataLoader(async (meetingIds: readonly number[]) => {
   const result = await reviewServiceInstance.listAllReviews(meetingIds, []);
-  return meetingIds.map((id) => result.filter((c) => c.id === id));
+  return meetingIds.map((id) => result.filter((c) => c.meetingId === id));
+});
+
+// 유저 작성한 리뷰 리스트 dataloader
+const userPostReviewLoader = new DataLoader(async (userIds: readonly string[]) => {
+  const result = await reviewServiceInstance.listAllReviews([], userIds);
+  return userIds.map((id) => result.filter((c) => c.userId === id));
+});
+
+const hostLoader = new DataLoader(async (hostIds: readonly string[]) => {
+  const result = await hostServiceInstance.getAllHost(hostIds.map((i) => i));
+  return hostIds.map((id) => result.filter((c) => c.id === id))[0];
 });
 
 const resolvers = {
@@ -108,7 +120,7 @@ const resolvers = {
     },
 
     host: async (parent: Meeting): Promise<Host> => {
-      const result = await hostServiceInstance.getHost(parent.hostId);
+      const result = await hostLoader.load(parent.hostId);
       return result;
     },
 
@@ -150,7 +162,7 @@ const resolvers = {
     // },
 
     reviews: async (parent: Meeting): Promise<Review[]> => {
-      const result = await reviewLoader.load(parent.id);
+      const result = await meetingConnectedReviewLoader.load(parent.id);
       return result;
     },
   },
@@ -192,10 +204,10 @@ const resolvers = {
     //   return result;
     // },
 
-    // postedReviews: async (parent: User): Promise<Review[]> => {
-    //   const result = await reviewServiceInstance.listReviews(0, parent.id, Page);
-    //   return result;
-    // },
+    postedReviews: async (parent: User): Promise<Review[]> => {
+      const result = await userPostReviewLoader.load(parent.id);
+      return result;
+    },
   },
 
   Host: {

@@ -99,7 +99,7 @@ export default class reviewService {
    * @param pageNum 페이지 번호
    * @return Array<Review>
    */
-  public async listAllReviews(meetingId: readonly number[], userId: string[]): Promise<Review[]> {
+  public async listAllReviews(meetingId: readonly number[], userId: readonly string[]): Promise<Review[]> {
     // user 필터 리뷰 리스트
     if (this.serviceUtil.isEmpty(meetingId) && !this.serviceUtil.isEmpty(userId)) {
       const result = await this.reviewRepository.listAllUserReviews(userId);

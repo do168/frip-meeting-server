@@ -148,7 +148,7 @@ export default class reviewRepository {
     return result[0] as Review[];
   }
 
-  public async listAllUserReviews(userId: string[]): Promise<Review[]> {
+  public async listAllUserReviews(userId: readonly string[]): Promise<Review[]> {
     const sql = `
     SELECT
       id,
