@@ -127,6 +127,48 @@ export default class reviewRepository {
     return result[0];
   }
 
+  public async listAllMeetingReviews(meetingId: readonly number[]): Promise<Review[]> {
+    const sql = `
+    SELECT
+      id,
+      title,
+      content,
+      updatedAt
+    FROM
+      review
+    WHERE
+      meetingId In (${meetingId}) and status = 1
+    ORDER BY updatedAt DESC
+    LIMIT 100
+    `;
+    const result = await mysql.connect(sql);
+    if (this.serviceUtil.isEmpty(result)) {
+      throw new Error();
+    }
+    return result[0] as Review[];
+  }
+
+  public async listAllUserReviews(userId: string[]): Promise<Review[]> {
+    const sql = `
+    SELECT
+      id,
+      userId,
+      title,
+      content,
+      updatedAt
+    FROM
+      review
+    WHERE
+      uesrId In (${userId}) and status = 1
+    LIMIT 100
+    `;
+    const [result] = await mysql.connect(sql);
+    if (this.serviceUtil.isEmpty(result)) {
+      throw new Error();
+    }
+    return result as Review[];
+  }
+
   public async deleteReview(id: number): Promise<number> {
     const param = [id];
     const sql = `

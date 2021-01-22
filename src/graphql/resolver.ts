@@ -9,12 +9,28 @@ import meetingService from '../services/meetingService';
 import reviewService from '../services/reviewService';
 import ServiceUtil from '../util/serviceUtil';
 import DataLoader from 'dataloader';
+import { Host } from '../model/Host';
+import { User } from '../model/User';
+import { Connection } from '../model/MeetingConnection';
+import hostRepository from '../repository/hostRepository';
+import hostService from '../services/hostService';
+import userRepository from '../repository/userRepository';
+import userService from '../services/userService';
 
 const serviceUtilInstance = new ServiceUtil();
 const meetingRepositoryInstance = new meetingRepository(serviceUtilInstance);
 const reviewRepositoryInstance = new reviewRepository(serviceUtilInstance);
+const hostRepositoryInstance = new hostRepository(serviceUtilInstance);
+const userRepositoryInstance = new userRepository(serviceUtilInstance);
 const meetingServiceInstance = new meetingService(meetingRepositoryInstance, serviceUtilInstance);
 const reviewServiceInstance = new reviewService(reviewRepositoryInstance, serviceUtilInstance);
+const hostServiceInstance = new hostService(hostRepositoryInstance, serviceUtilInstance);
+const userServiceInstance = new userService(userRepositoryInstance, serviceUtilInstance);
+
+const reviewLoader = new DataLoader(async (meetingIds: readonly number[]) => {
+  const result = await reviewServiceInstance.listAllReviews(meetingIds, []);
+  return meetingIds.map((id) => result.filter((c) => c.id === id));
+});
 
 const resolvers = {
   Query: {
@@ -24,11 +40,30 @@ const resolvers = {
       return result;
     },
 
-    meetings: async (_: unknown, args: any): Promise<Array<Meeting>> => {
+    // Connection 객체로 페이징하여 리턴하기 -> 이게 맞나 싶습니다.
+    meetings: async (_: unknown, args: any): Promise<Connection<Meeting>> => {
       const hostId = args.hostId ? String(args.hostId) : '';
-      const page: Page = { pageNum: args.page.pageNum || 0, pageSize: args.page.pageSize || 0 };
-      const result = meetingServiceInstance.listMeetings(hostId, page);
-      return result;
+      const page: Page = { pageNum: args.page.pageNum || 0, pageSize: args.page.pageSize + 1 || 0 };
+      const result = await meetingServiceInstance.listMeetings(hostId, page);
+      const totalcount = result.length - 1;
+      const hasNextPage = result.length > args.page.pageSize;
+      const nodes = hasNextPage ? result.slice(0, -1) : result;
+
+      const edges = nodes.map((node) => {
+        return {
+          node: node,
+          cursor: node.updatedAt,
+        };
+      });
+
+      return {
+        totalCount: totalcount,
+        pageInfo: {
+          hasNextPage: hasNextPage,
+          endCursor: nodes[nodes.length - 1].updatedAt,
+        },
+        edges: edges || [],
+      };
     },
 
     review: async (_: unknown, args: any): Promise<Review> => {
@@ -37,16 +72,145 @@ const resolvers = {
       return result;
     },
 
-    reviews: async (_: unknown, args: any): Promise<Array<Review>> => {
+    reviews: async (_: unknown, args: any): Promise<Connection<Review>> => {
       const meetingId = args.meetingId ? Number(args.meetingId) : 0;
       const userId = args.userId ? String(args.userId) : '';
       const page: Page = {
         pageNum: args.page.pageNum || 0,
-        pageSize: args.page.pageSize || 0,
+        pageSize: args.page.pageSize + 1 || 0,
       };
       const result = await reviewServiceInstance.listReviews(meetingId, userId, page);
+      const totalcount = result.length - 1;
+      const hasNextPage = result.length > args.page.pageSize;
+      const nodes = hasNextPage ? result.slice(0, -1) : result;
+
+      const edges = nodes.map((node) => {
+        return {
+          node: node,
+          cursor: node.updatedAt,
+        };
+      });
+
+      return {
+        totalCount: totalcount,
+        pageInfo: {
+          hasNextPage: hasNextPage,
+          endCursor: nodes[nodes.length - 1].updatedAt,
+        },
+        edges: edges || [],
+      };
+    },
+  },
+
+  Meeting: {
+    id: (parent: Meeting): number => {
+      return parent.id || 0;
+    },
+
+    host: async (parent: Meeting): Promise<Host> => {
+      const result = await hostServiceInstance.getHost(parent.hostId);
       return result;
     },
+
+    title: (parent: Meeting): string => {
+      return parent.title;
+    },
+
+    content: (parent: Meeting): string => {
+      return parent.content;
+    },
+
+    startAt: (parent: Meeting): string => {
+      return parent.startAt;
+    },
+
+    endAt: (parent: Meeting): string => {
+      return parent.endAt;
+    },
+
+    deadline: (parent: Meeting): string => {
+      return parent.deadline;
+    },
+
+    maxParticipant: (parent: Meeting): number => {
+      return parent.maxParticipant;
+    },
+
+    place: (parent: Meeting): string => {
+      return parent.place;
+    },
+
+    updatedAt: (parent: Meeting): string => {
+      return parent.updatedAt;
+    },
+
+    // participatesUsers: async (parent: Meeting): Promise<Connection<Participation>> => {
+    //   const result = await meetingServiceInstance.listParticipationUsers(parent.id);
+    //   return result;
+    // },
+
+    reviews: async (parent: Meeting): Promise<Review[]> => {
+      const result = await reviewLoader.load(parent.id);
+      return result;
+    },
+  },
+
+  Review: {
+    id: (parent: Review): number => {
+      return parent.id || 0;
+    },
+
+    title: (parent: Review): string => {
+      return parent.title;
+    },
+
+    content: (parent: Review): string => {
+      return parent.content;
+    },
+
+    updatedAt: (parent: Review): string => {
+      return parent.updatedAt;
+    },
+
+    postedBy: async (parent: Review): Promise<User> => {
+      const result = await userServiceInstance.getUser(parent.userId);
+      return result;
+    },
+  },
+
+  User: {
+    id: (parent: User): string => {
+      return parent.id;
+    },
+
+    nickname: (parent: User): string => {
+      return parent.nickname;
+    },
+
+    // participatesMeetings: async (parent: User): Promise<Participation[]> => {
+    //   const result = await meetingServiceInstance.listMeetings(parent.id);
+    //   return result;
+    // },
+
+    // postedReviews: async (parent: User): Promise<Review[]> => {
+    //   const result = await reviewServiceInstance.listReviews(0, parent.id, Page);
+    //   return result;
+    // },
+  },
+
+  Host: {
+    id: (parent: Host): string => {
+      return parent.id;
+    },
+
+    nickname: (parent: Host): string => {
+      return parent.nickname;
+    },
+
+    // postedMeetings: async (parent: Host): Promise<Meeting[]> => {
+    //   const result = await meetingServiceInstance.listMeetings(parent.id, page);
+    //   return result;
+    // },
   },
 
   Mutation: {
@@ -65,7 +229,7 @@ const resolvers = {
       return result;
     },
 
-    updateMeeting: async (_: unknown, args: any, { input }: { input: MeetingPostParam }) => {
+    updateMeeting: async (_: unknown, args: any, { input }: { input: MeetingPostParam }): Promise<number> => {
       const meetingPostParam: MeetingPostParam = {
         hostId: input.hostId || '',
         title: input.title || '',
@@ -81,34 +245,34 @@ const resolvers = {
       return result;
     },
 
-    deleteMeeting: async (_: unknown, args: any) => {
+    deleteMeeting: async (_: unknown, args: any): Promise<number> => {
       const id = args.id ? Number(args.id) : 0;
       const result = meetingServiceInstance.deleteMeeting(id);
       return result;
     },
 
-    createMeetingParticipation: async (_: unknown, args: any) => {
+    createMeetingParticipation: async (_: unknown, args: any): Promise<number> => {
       const meetingId = args.meetingId ? Number(args.meetingId) : 0;
       const userId = args.userId ? String(args.userId) : '';
       const result = await meetingServiceInstance.createMeetingParticipation(meetingId, userId);
       return result;
     },
 
-    deleteMeetingParticipation: async (_: unknown, args: any) => {
+    deleteMeetingParticipation: async (_: unknown, args: any): Promise<number> => {
       const meetingId = args.meetingId ? Number(args.meetingId) : 0;
       const userId = args.userId ? String(args.userId) : '';
       const result = await meetingServiceInstance.deleteMeetingParticipation(meetingId, userId);
       return result;
     },
 
-    updateAttendance: async (_: unknown, args: any) => {
+    updateAttendance: async (_: unknown, args: any): Promise<number> => {
       const meetingId = args.meetingId ? Number(args.meetingId) : 0;
       const userId = args.userId ? String(args.userId) : '';
       const result = await meetingServiceInstance.updateMeetingAttendance(meetingId, userId);
       return result;
     },
 
-    createReview: async (_: unknown, { input }: { input: ReviewPostParam }) => {
+    createReview: async (_: unknown, { input }: { input: ReviewPostParam }): Promise<number> => {
       const reviewPostParam: ReviewPostParam = {
         meetingId: input.meetingId || 0,
         userId: input.userId || '',
@@ -120,7 +284,7 @@ const resolvers = {
       return reuslt;
     },
 
-    updateReview: async (_: unknown, args: any, { input }: { input: ReviewPostParam }) => {
+    updateReview: async (_: unknown, args: any, { input }: { input: ReviewPostParam }): Promise<number> => {
       const reviewPostParam: ReviewPostParam = {
         meetingId: input.meetingId || 0,
         userId: input.userId || '',
@@ -128,13 +292,13 @@ const resolvers = {
         content: input.content || '',
       };
       const id = args.id ? Number(args.id) : 0;
-      const reuslt = reviewServiceInstance.updateReview(id, reviewPostParam);
+      const reuslt = await reviewServiceInstance.updateReview(id, reviewPostParam);
       return reuslt;
     },
 
-    deleteReview: async (_: unknown, args: any) => {
+    deleteReview: async (_: unknown, args: any): Promise<number> => {
       const id = args.id ? Number(args.id) : 0;
-      const result = reviewServiceInstance.deleteReview(id);
+      const result = await reviewServiceInstance.deleteReview(id);
       return result;
     },
   },

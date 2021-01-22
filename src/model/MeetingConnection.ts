@@ -1,8 +1,8 @@
-import { PageInfo } from './input/PageInfo';
-import { MeetingEdge } from './MeetingEdge';
+import { Edge } from './Edge';
+import { PageInfo } from './PageInfo';
 
-export interface MeetingConnection {
+export interface Connection<T> {
   totalCount: number;
   pageInfo: PageInfo;
-  edges: MeetingEdge[];
+  edges: Edge<T>[];
 }

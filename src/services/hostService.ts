@@ -7,13 +7,15 @@ import {
   NotCreationException,
 } from '../util/customException';
 import { Host } from '../model/Host';
+import hostRepository from '../repository/hostRepository';
 
 export default class meetingService {
   private serviceUtil: ServiceUtil;
-
+  private hostRepository: hostRepository;
   // DI
-  constructor(serviceUtil: ServiceUtil) {
+  constructor(hostRepository: hostRepository, serviceUtil: ServiceUtil) {
     this.serviceUtil = serviceUtil;
+    this.hostRepository = hostRepository;
   }
 
   /**
@@ -25,7 +27,7 @@ export default class meetingService {
     if (this.serviceUtil.isEmpty(id)) {
       throw new NullException('id');
     }
-    const resultHostInfo: Host = await this.hostgMapper.getHost(id);
+    const resultHostInfo: Host = await this.hostRepository.getHost(id);
 
     return resultHostInfo;
   }

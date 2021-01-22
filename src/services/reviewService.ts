@@ -93,6 +93,36 @@ export default class reviewService {
   }
 
   /**
+   * 리뷰 리스트 조회 서비스. 모임, 유저별 필터를 통해 리스트를 조회할 수 있다
+   * @param meetingId 필터링할 모임 ID
+   * @param userId 필터링할 유저 ID
+   * @param pageNum 페이지 번호
+   * @return Array<Review>
+   */
+  public async listAllReviews(meetingId: readonly number[], userId: string[]): Promise<Review[]> {
+    // user 필터 리뷰 리스트
+    if (this.serviceUtil.isEmpty(meetingId) && !this.serviceUtil.isEmpty(userId)) {
+      const result = await this.reviewRepository.listAllUserReviews(userId);
+      for (let i in result) {
+        result[i].updatedAt = this.serviceUtil.dateToStr(new Date(result[i].updatedAt));
+      }
+      return result;
+    }
+    // meeting 필터 리뷰 리스트
+    else if (!this.serviceUtil.isEmpty(meetingId) && this.serviceUtil.isEmpty(userId)) {
+      const result = await this.reviewRepository.listAllMeetingReviews(meetingId);
+      for (let i in result) {
+        result[i].updatedAt = this.serviceUtil.dateToStr(new Date(result[i].updatedAt));
+      }
+      return result;
+    }
+    // 전체 리뷰 리스트
+    else {
+      throw new NullException('param');
+    }
+  }
+
+  /**
    * 리뷰 삭제 서비스
    * @param id 삭제할 리뷰 ID
    * @reutrn affectedRow
