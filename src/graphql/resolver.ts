@@ -58,7 +58,7 @@ const resolvers = {
     // Connection 객체로 페이징하여 리턴하기 -> 이게 맞나 싶습니다.
     meetings: async (_: unknown, args: any): Promise<Connection<Meeting>> => {
       const hostId = args.hostId ? String(args.hostId) : '';
-      const page: Page = { pageNum: args.page.pageNum || 0, pageSize: args.page.pageSize + 1 || 0 };
+      const page: Page = { pageNum: args.page.pageNum || 0, pageSize: args.page.pageSize ? args.page.pageSize + 1 : 0 };
       const result = await meetingServiceInstance.listMeetings(hostId, page);
       const totalcount = result.length - 1;
       const hasNextPage = result.length > args.page.pageSize;
@@ -92,7 +92,7 @@ const resolvers = {
       const userId = args.userId ? String(args.userId) : '';
       const page: Page = {
         pageNum: args.page.pageNum || 0,
-        pageSize: args.page.pageSize + 1 || 0,
+        pageSize: args.page.pageSize ? args.page.pageSize + 1 : 0,
       };
       const result = await reviewServiceInstance.listReviews(meetingId, userId, page);
       const totalcount = result.length - 1;

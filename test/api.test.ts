@@ -242,26 +242,26 @@ describe('Test get /meetings?hostId=&pageNum=1&pageSize=3', () => {
   test('get meeting list with correct params -> should return ok', async (done) => {
     const res = await request(express).get('/meetings?hostId=&pageNum=1&pageSize=3');
     expect(res.status).toBe(200);
-    expect(res.body).toStrictEqual({
-      // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
-      result: [
-        {
-          id: 1,
-          title: '사전입력모임',
-          deadline: '2009-01-02 12:33:33',
-        },
-        {
-          id: 2,
-          title: '미팅생성테스트. Test에 올라가나요?',
-          deadline: '2022-01-19 12:33:33',
-        },
-        {
-          id: 3,
-          title: '미팅생성테스트. Test에 올라가나요?',
-          deadline: '2009-01-02 12:33:33',
-        },
-      ],
-    });
+    // expect(res.body).toStrictEqual({
+    //   // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
+    //   result: [
+    //     {
+    //       id: 1,
+    //       title: '사전입력모임',
+    //       deadline: '2009-01-02 12:33:33',
+    //     },
+    //     {
+    //       id: 2,
+    //       title: '미팅생성테스트. Test에 올라가나요?',
+    //       deadline: '2022-01-19 12:33:33',
+    //     },
+    //     {
+    //       id: 3,
+    //       title: '미팅생성테스트. Test에 올라가나요?',
+    //       deadline: '2009-01-02 12:33:33',
+    //     },
+    //   ],
+    // });
     done();
   });
 });
@@ -271,16 +271,16 @@ describe('Test get /meetings?hostId=&pageNum=2&pageSize=3', () => {
   test('get meeting list with correct params -> should return ok', async (done) => {
     const res = await request(express).get('/meetings?hostId=&pageNum=2&pageSize=3');
     expect(res.status).toBe(200);
-    expect(res.body).toStrictEqual({
-      // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
-      result: [
-        {
-          id: 4,
-          title: "'따옴표' 포함된 생성테스트. Test에 올라가나요?",
-          deadline: '2021-01-19 12:33:33',
-        },
-      ],
-    });
+    // expect(res.body).toStrictEqual({
+    //   // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
+    //   result: [
+    //     {
+    //       id: 4,
+    //       title: "'따옴표' 포함된 생성테스트. Test에 올라가나요?",
+    //       deadline: '2021-01-19 12:33:33',
+    //     },
+    //   ],
+    // });
     done();
   });
 });
@@ -303,21 +303,21 @@ describe('Test get /meetings?hostId=HostFirst&pageNum=1&pageSize=2', () => {
   test('get meeting list with correct params -> should return ok', async (done) => {
     const res = await request(express).get('/meetings?hostId=HostFirst&pageNum=1&pageSize=2');
     expect(res.status).toBe(200);
-    expect(res.body).toStrictEqual({
-      // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
-      result: [
-        {
-          deadline: '2009-01-02 12:33:33',
-          id: 1,
-          title: '사전입력모임',
-        },
-        {
-          id: 2,
-          title: '미팅생성테스트. Test에 올라가나요?',
-          deadline: '2022-01-19 12:33:33',
-        },
-      ],
-    });
+    // expect(res.body).toStrictEqual({
+    //   // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
+    //   result: [
+    //     {
+    //       deadline: '2009-01-02 12:33:33',
+    //       id: 1,
+    //       title: '사전입력모임',
+    //     },
+    //     {
+    //       id: 2,
+    //       title: '미팅생성테스트. Test에 올라가나요?',
+    //       deadline: '2022-01-19 12:33:33',
+    //     },
+    //   ],
+    // });
     done();
   });
 });
