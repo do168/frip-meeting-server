@@ -28,4 +28,21 @@ export default class userRepository {
     }
     return result[0][0];
   }
+
+  public async listAllUsers(meetingIds: readonly number[]): Promise<User[]> {
+    const sql = `
+    SELECT
+      meetingId,
+      userId,
+    FROM
+      participatesMeeting
+    WHERE
+      id in (${meetingIds}) and status = 1
+    `;
+    const result = await mysql.connect(sql);
+    if (this.serviceUtil.isEmpty(result) || this.serviceUtil.isEmpty(result[0])) {
+      throw new DBException();
+    }
+    return result[0][0];
+  }
 }
