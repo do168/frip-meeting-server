@@ -9,6 +9,7 @@ import { NotFoundException } from './util/customException';
 import { ApolloServer, defaultPlaygroundOptions } from 'apollo-server-express';
 import typeDefs from './graphql/typeDef';
 import resolvers from './graphql/resolver';
+import { errorHandler } from './graphql/errorHandler';
 
 export class App {
   private express: express.Application;
@@ -26,6 +27,7 @@ export class App {
     return new ApolloServer({
       typeDefs: typeDefs,
       resolvers: resolvers,
+      formatError: errorHandler,
       playground: playgroundOptions,
     });
   }
