@@ -31,4 +31,9 @@ export default class userService {
 
     return resultUserInfo;
   }
+
+  public async listAllUsers(meetingIds: readonly number[]): Promise<User[]> {
+    const resultUsers: User[] = await this.userRepository.listAllUsers(meetingIds);
+    return resultUsers;
+  }
 }

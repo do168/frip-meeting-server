@@ -5,21 +5,21 @@ const typeDefs = gql`
     meetings(hostId: String, page: Page!): MeetingConnection!
     meeting(id: Int!): Meeting!
 
-    reviews(meetingId: Int!, userId: String!, page: Page): [Review!]
+    reviews(meetingId: Int!, userId: String!, page: Page): ReviewConnection!
     review(id: Int!): Review!
   }
 
   type Mutation {
     createMeeting(input: MeetingPostParam): Meeting!
-    updateMeeting(id: Int!, input: MeetingPostParam): Int!
-    deleteMeeting(id: Int!): Int!
+    updateMeeting(id: Int!, input: MeetingPostParam): Meeting!
+    deleteMeeting(id: Int!): Success!
     createMeetingParticipation(meetingId: Int, userId: String): Participation!
-    deleteMeetingParticipation(meetingId: Int, userId: String): Int!
-    updateAttendance(meetingId: Int!, userId: String!): Int!
+    deleteMeetingParticipation(meetingId: Int, userId: String): Success!
+    updateAttendance(meetingId: Int!, userId: String!): Participation!
 
     createReview(input: ReviewPostParam): Review!
-    updateReview(id: Int!, input: ReviewPostParam): Int!
-    deleteReview(id: Int!): Int!
+    updateReview(id: Int!, input: ReviewPostParam): Review!
+    deleteReview(id: Int!): Success!
   }
 
   input MeetingPostParam {
@@ -75,13 +75,13 @@ const typeDefs = gql`
     place: String!
 
     " 모임 등록글 업데이트 시간 "
-    updatedAt: String
+    updatedAt: String!
 
     " 현재 참가 유저"
-    participatesUsers: UserParticipatesConnection!
+    participatesUsers: [User!]
 
     " 모임 후기 "
-    reviews: [Review!]
+    connectedReviews: [Review!]
   }
 
   type Review {
@@ -92,13 +92,13 @@ const typeDefs = gql`
     postedBy: User!
 
     " 제목 "
-    title: String
+    title: String!
 
     " 내용 "
-    content: String
+    content: String!
 
     " 등록 또는 수정 시간 "
-    updatedAt: String
+    updatedAt: String!
   }
 
   type User {
@@ -107,12 +107,6 @@ const typeDefs = gql`
 
     " 유저 닉네임 "
     nickname: String!
-
-    " 유저가 참가한 미팅 "
-    participatesMeetings: UserParticipatesConnection!
-
-    " 유저가 작성한 후기 "
-    postedReviews: ReviewConnection!
   }
 
   type Host {
@@ -121,9 +115,6 @@ const typeDefs = gql`
 
     " 호스트 닉네임 "
     nickname: String!
-
-    " 등록한 모임 "
-    postedMeetings: MeetingConnection
   }
 
   type Participation {
@@ -132,14 +123,11 @@ const typeDefs = gql`
 
     " 참가신청 모임 "
     meeting: Meeting!
-
-    " 신청 시간 "
-    applyAt: String!
   }
 
   type PageInfo {
     hasNextPage: Boolean!
-    endCursor: String
+    endCursor: String!
   }
 
   type MeetingConnection {
@@ -150,7 +138,7 @@ const typeDefs = gql`
 
   type MeetingEdge {
     cursor: String!
-    node: Meeting
+    node: Meeting!
   }
 
   type ReviewConnection {
@@ -163,16 +151,9 @@ const typeDefs = gql`
     cursor: String!
     node: Review
   }
-
-  type UserParticipatesConnection {
-    totalCount: Int!
-    pageInfo: PageInfo!
-    edges: [UserParticipatesEdge!]
-  }
-
-  type UserParticipatesEdge {
-    cursor: String!
-    node: Participation
+  type Success {
+    " delete 리턴 형식 "
+    message: String!
   }
 `;
 

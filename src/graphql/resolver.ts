@@ -16,6 +16,8 @@ import hostRepository from '../repository/hostRepository';
 import hostService from '../services/hostService';
 import userRepository from '../repository/userRepository';
 import userService from '../services/userService';
+import { Success } from '../model/Success';
+import { Participation } from '../model/Participation';
 
 const serviceUtilInstance = new ServiceUtil();
 const meetingRepositoryInstance = new meetingRepository(serviceUtilInstance);
@@ -33,12 +35,13 @@ const meetingConnectedReviewLoader = new DataLoader(async (meetingIds: readonly 
   return meetingIds.map((id) => result.filter((c) => c.meetingId === id));
 });
 
-// 유저 작성한 리뷰 리스트 dataloader
-const userPostReviewLoader = new DataLoader(async (userIds: readonly string[]) => {
-  const result = await reviewServiceInstance.listAllReviews([], userIds);
-  return userIds.map((id) => result.filter((c) => c.userId === id));
+// 모임에 참여한 유저 리스트 dataloader
+const meetingParticipatedUserLoader = new DataLoader(async (meetingIds: readonly number[]) => {
+  const result = await userServiceInstance.listAllUsers(meetingIds);
+  return meetingIds.map((id) => result.filter((c) => c.meetingId === id));
 });
 
+// 호스트 dataloader
 const hostLoader = new DataLoader(async (hostIds: readonly string[]) => {
   const result = await hostServiceInstance.getAllHost(hostIds.map((i) => i));
   return hostIds.map((id) => result.filter((c) => c.id === id))[0];
@@ -64,7 +67,7 @@ const resolvers = {
       const edges = nodes.map((node) => {
         return {
           node: node,
-          cursor: node.updatedAt,
+          cursor: Buffer.from(node.id + 'Meeting', 'utf8').toString('base64'),
         };
       });
 
@@ -72,7 +75,7 @@ const resolvers = {
         totalCount: totalcount,
         pageInfo: {
           hasNextPage: hasNextPage,
-          endCursor: nodes[nodes.length - 1].updatedAt,
+          endCursor: Buffer.from(nodes[nodes.length - 1].id + 'Meeting', 'utf8').toString('base64'),
         },
         edges: edges || [],
       };
@@ -99,7 +102,7 @@ const resolvers = {
       const edges = nodes.map((node) => {
         return {
           node: node,
-          cursor: node.updatedAt,
+          cursor: Buffer.from(node.id + 'Review', 'utf8').toString('base64'),
         };
       });
 
@@ -107,7 +110,7 @@ const resolvers = {
         totalCount: totalcount,
         pageInfo: {
           hasNextPage: hasNextPage,
-          endCursor: nodes[nodes.length - 1].updatedAt,
+          endCursor: Buffer.from(nodes[nodes.length - 1].id + 'Review', 'utf8').toString('base64'),
         },
         edges: edges || [],
       };
@@ -155,13 +158,12 @@ const resolvers = {
     updatedAt: (parent: Meeting): string => {
       return parent.updatedAt;
     },
+    participatesUsers: async (parent: Meeting): Promise<User[]> => {
+      const result = await meetingParticipatedUserLoader.load(parent.id);
+      return result;
+    },
 
-    // participatesUsers: async (parent: Meeting): Promise<Connection<Participation>> => {
-    //   const result = await meetingServiceInstance.listParticipationUsers(parent.id);
-    //   return result;
-    // },
-
-    reviews: async (parent: Meeting): Promise<Review[]> => {
+    connectedReviews: async (parent: Meeting): Promise<Review[]> => {
       const result = await meetingConnectedReviewLoader.load(parent.id);
       return result;
     },
@@ -198,16 +200,6 @@ const resolvers = {
     nickname: (parent: User): string => {
       return parent.nickname;
     },
-
-    // participatesMeetings: async (parent: User): Promise<Participation[]> => {
-    //   const result = await meetingServiceInstance.listMeetings(parent.id);
-    //   return result;
-    // },
-
-    postedReviews: async (parent: User): Promise<Review[]> => {
-      const result = await userPostReviewLoader.load(parent.id);
-      return result;
-    },
   },
 
   Host: {
@@ -218,100 +210,84 @@ const resolvers = {
     nickname: (parent: Host): string => {
       return parent.nickname;
     },
-
-    // postedMeetings: async (parent: Host): Promise<Meeting[]> => {
-    //   const result = await meetingServiceInstance.listMeetings(parent.id, page);
-    //   return result;
-    // },
   },
 
   Mutation: {
-    createMeeting: async (_: unknown, { input }: { input: MeetingPostParam }) => {
-      const meetingPostParam: MeetingPostParam = {
-        hostId: input.hostId || '',
-        title: input.title || '',
-        content: input.title || '',
-        startAt: input.startAt || '',
-        endAt: input.endAt || '',
-        deadline: input.deadline || '',
-        maxParticipant: input.maxParticipant || 0,
-        place: input.place || '',
-      };
-      const result = meetingServiceInstance.createMeeting(meetingPostParam);
+    createMeeting: async (_: unknown, { input }: { input: MeetingPostParam }): Promise<Meeting> => {
+      const id = await meetingServiceInstance.createMeeting(input);
+      const result = await meetingServiceInstance.getMeeting(id);
       return result;
     },
 
-    updateMeeting: async (_: unknown, args: any, { input }: { input: MeetingPostParam }): Promise<number> => {
-      const meetingPostParam: MeetingPostParam = {
-        hostId: input.hostId || '',
-        title: input.title || '',
-        content: input.title || '',
-        startAt: input.startAt || '',
-        endAt: input.endAt || '',
-        deadline: input.deadline || '',
-        maxParticipant: input.maxParticipant || 0,
-        place: input.place || '',
-      };
+    updateMeeting: async (_: unknown, args: any, { input }: { input: MeetingPostParam }): Promise<Meeting> => {
       const id = args.id ? Number(args.id) : 0;
-      const result = meetingServiceInstance.updateMeeting(id, meetingPostParam);
+      const result = await meetingServiceInstance.getMeeting(id);
       return result;
     },
 
-    deleteMeeting: async (_: unknown, args: any): Promise<number> => {
+    deleteMeeting: async (_: unknown, args: any): Promise<Success> => {
       const id = args.id ? Number(args.id) : 0;
-      const result = meetingServiceInstance.deleteMeeting(id);
-      return result;
+      try {
+        meetingServiceInstance.deleteMeeting(id);
+        return { message: `${id} meeting delete Success` };
+      } catch (error) {
+        return { message: `${id} meeting delete Fail ` + error.message };
+      }
     },
 
-    createMeetingParticipation: async (_: unknown, args: any): Promise<number> => {
+    createMeetingParticipation: async (_: unknown, args: any): Promise<Participation> => {
       const meetingId = args.meetingId ? Number(args.meetingId) : 0;
       const userId = args.userId ? String(args.userId) : '';
-      const result = await meetingServiceInstance.createMeetingParticipation(meetingId, userId);
-      return result;
+      await meetingServiceInstance.createMeetingParticipation(meetingId, userId);
+      return {
+        meeting: await meetingServiceInstance.getMeeting(meetingId),
+        user: await userServiceInstance.getUser(userId),
+      };
     },
 
-    deleteMeetingParticipation: async (_: unknown, args: any): Promise<number> => {
+    deleteMeetingParticipation: async (_: unknown, args: any): Promise<Success> => {
       const meetingId = args.meetingId ? Number(args.meetingId) : 0;
       const userId = args.userId ? String(args.userId) : '';
-      const result = await meetingServiceInstance.deleteMeetingParticipation(meetingId, userId);
-      return result;
+      try {
+        await meetingServiceInstance.deleteMeetingParticipation(meetingId, userId);
+        return { message: `meeting participation cancel Success` };
+      } catch (error) {
+        return { message: `meeting participation cancel Fail ` + error.message };
+      }
     },
 
-    updateAttendance: async (_: unknown, args: any): Promise<number> => {
+    updateAttendance: async (_: unknown, args: any): Promise<Participation> => {
       const meetingId = args.meetingId ? Number(args.meetingId) : 0;
       const userId = args.userId ? String(args.userId) : '';
-      const result = await meetingServiceInstance.updateMeetingAttendance(meetingId, userId);
+      await meetingServiceInstance.updateMeetingAttendance(meetingId, userId);
+      return {
+        meeting: await meetingServiceInstance.getMeeting(meetingId),
+        user: await userServiceInstance.getUser(userId),
+      };
+    },
+
+    createReview: async (_: unknown, { input }: { input: ReviewPostParam }): Promise<Review> => {
+      const condition = await meetingServiceInstance.checkReviewCondition(input);
+      const id = await reviewServiceInstance.createReview(condition, input);
+      const result = await reviewServiceInstance.getReview(id);
       return result;
     },
 
-    createReview: async (_: unknown, { input }: { input: ReviewPostParam }): Promise<number> => {
-      const reviewPostParam: ReviewPostParam = {
-        meetingId: input.meetingId || 0,
-        userId: input.userId || '',
-        title: input.title || '',
-        content: input.content || '',
-      };
-      const condition = await meetingServiceInstance.checkReviewCondition(reviewPostParam);
-      const reuslt = reviewServiceInstance.createReview(condition, reviewPostParam);
-      return reuslt;
+    updateReview: async (_: unknown, args: any, { input }: { input: ReviewPostParam }): Promise<Review> => {
+      const id = args.id ? Number(args.id) : 0;
+      await reviewServiceInstance.updateReview(id, input);
+      const result = await reviewServiceInstance.getReview(id);
+      return result; // 리턴값을 어떻게 해야할까?
     },
 
-    updateReview: async (_: unknown, args: any, { input }: { input: ReviewPostParam }): Promise<number> => {
-      const reviewPostParam: ReviewPostParam = {
-        meetingId: input.meetingId || 0,
-        userId: input.userId || '',
-        title: input.title || '',
-        content: input.content || '',
-      };
+    deleteReview: async (_: unknown, args: any): Promise<Success> => {
       const id = args.id ? Number(args.id) : 0;
-      const reuslt = await reviewServiceInstance.updateReview(id, reviewPostParam);
-      return reuslt;
-    },
-
-    deleteReview: async (_: unknown, args: any): Promise<number> => {
-      const id = args.id ? Number(args.id) : 0;
-      const result = await reviewServiceInstance.deleteReview(id);
-      return result;
+      try {
+        await reviewServiceInstance.deleteReview(id);
+        return { message: `${id} review delete Success` };
+      } catch (error) {
+        return { message: `${id} review delete Fail ` + error.message };
+      }
     },
   },
 };
