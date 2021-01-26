@@ -49,8 +49,10 @@ const typeDefs = gql`
 
   input Page {
     "this is Page type!"
-    pageNum: Int!
-    pageSize: Int!
+    pageNum: Int
+    pageSize: Int
+    first: Int
+    after: String
   }
 
   type Meeting {
@@ -157,10 +159,6 @@ const typeDefs = gql`
   type ReviewEdge {
     cursor: String!
     node: Review
-  }
-  type Success {
-    " delete 리턴 형식 "
-    message: String!
   }
 
   scalar Date

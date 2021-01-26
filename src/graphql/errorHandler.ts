@@ -1,14 +1,3 @@
-import {
-  DateFormatException,
-  FullParticipationException,
-  NotCreationException,
-  NotExistsException,
-  NotFoundException,
-  NullException,
-  ReviewConditionException,
-  TimeLimitException,
-  TypeException,
-} from '../util/customException';
 import { toApolloError } from 'apollo-server-express';
 import { GraphQLError } from 'graphql';
 

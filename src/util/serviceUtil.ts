@@ -1,4 +1,4 @@
-import { DateFormatException, NullException } from './customException';
+import { CursorValueException, DateFormatException, NullException } from './customException';
 
 export default class ServiceUtil {
   /**
@@ -92,6 +92,19 @@ export default class ServiceUtil {
   }
 
   public convertCursor(id: number | string, type: string): string {
-    return Buffer.from(id + type, 'utf8').toString('base64');
+    return Buffer.from(id + '/' + type, 'binary').toString('base64');
+  }
+
+  public convertId(cursor: string | undefined): number | string {
+    if (cursor === undefined) throw new CursorValueException();
+
+    const decodedCursor = Buffer.from(cursor, 'base64').toString('binary');
+    const id = decodedCursor.split('/')[0];
+
+    if (id === undefined) {
+      throw new CursorValueException();
+    }
+
+    return id;
   }
 }

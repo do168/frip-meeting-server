@@ -8,6 +8,7 @@ import meetingRepository from '../repository/meetingRepository';
 import meetingService from '../services/meetingService';
 import { Page } from '../model/Connections/Page';
 import { validateBodyParams, validatePathParams, validateQueryParams } from '../middleware/validateParamsRoute';
+import { PageValidate } from '../model/enum/PageValidate';
 
 /**
  * @swagger
@@ -129,6 +130,8 @@ router.get(
     const page: Page = {
       pageNum: Number(req.query.pageNum) || 0,
       pageSize: Number(req.query.pageSize) || 0,
+      first: PageValidate.INVALIDATE,
+      after: PageValidate.INVALIDATE,
     };
     const result = await reviewServiceInstance.listReviews(meetingId, userId, page);
     return res.json({ result });

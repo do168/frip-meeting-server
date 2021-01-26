@@ -108,6 +108,30 @@ export class DateFormatException extends Error {
   }
 }
 
+export class CursorValueException extends Error {
+  status: number;
+  code: string;
+  constructor() {
+    super('Cursor 형식이 올바르지 않습니다');
+    this.name = 'Client';
+    this.stack = Error().stack;
+    this.status = 400;
+    this.code = 'EXTERNAL_CLIENT_ERROR';
+  }
+}
+
+export class PagingException extends Error {
+  status: number;
+  code: string;
+  constructor() {
+    super('Page 타입이 올바르지 않습니다');
+    this.name = 'Client';
+    this.stack = Error().stack;
+    this.status = 400;
+    this.code = 'EXTERNAL_CLIENT_ERROR';
+  }
+}
+
 export class DBException extends Error {
   status: number;
   constructor() {

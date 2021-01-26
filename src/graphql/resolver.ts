@@ -19,6 +19,7 @@ import userService from '../services/userService';
 import { Participation } from '../model/resource/Participation';
 import { GraphQLScalarType, Kind } from 'graphql';
 import { DeleteStatus } from '../model/enum/DeleteStatus';
+import { PageValidate } from '../model/enum/PageValidate';
 
 const serviceUtilInstance = new ServiceUtil();
 const meetingRepositoryInstance = new meetingRepository(serviceUtilInstance);
@@ -58,11 +59,16 @@ const resolvers = {
 
     meetings: async (_: unknown, args: any): Promise<Connection<Meeting>> => {
       const hostId = args.hostId ? String(args.hostId) : '';
-      const page: Page = { pageNum: args.page.pageNum || 0, pageSize: args.page.pageSize ? args.page.pageSize + 1 : 0 };
+      const page = {
+        pageNum: PageValidate.INVALIDATE,
+        pageSize: PageValidate.INVALIDATE,
+        first: args.page.first ? Number(args.page.first) + 1 : 1,
+        after: args.page.after ? Number(serviceUtilInstance.convertId(args.page.after)) : 10,
+      };
       const result = await meetingServiceInstance.listMeetings(hostId, page);
 
-      const totalcount = result.length == args.page.pageSize + 1 ? args.page.pageSize : result.length;
-      const hasNextPage = result.length > args.page.pageSize;
+      const totalcount = result.length == page.first ? page.first - 1 : result.length;
+      const hasNextPage = result.length == page.first;
       const nodes = hasNextPage ? result.slice(0, -1) : result;
 
       const edges = nodes.map((node) => {
@@ -91,14 +97,16 @@ const resolvers = {
     reviews: async (_: unknown, args: any): Promise<Connection<Review>> => {
       const meetingId = args.meetingId ? Number(args.meetingId) : 0;
       const userId = args.userId ? String(args.userId) : '';
-      const page: Page = {
-        pageNum: args.page.pageNum || 0,
-        pageSize: args.page.pageSize ? args.page.pageSize + 1 : 0,
+      const page = {
+        pageNum: PageValidate.INVALIDATE,
+        pageSize: PageValidate.INVALIDATE,
+        first: args.page.first ? Number(args.page.first) + 1 : 1,
+        after: args.page.after ? Number(serviceUtilInstance.convertId(args.page.after)) : 10,
       };
       const result = await reviewServiceInstance.listReviews(meetingId, userId, page);
 
-      const totalcount = result.length == args.page.pageSize + 1 ? args.page.pageSize : result.length;
-      const hasNextPage = result.length > args.page.pageSize;
+      const totalcount = result.length == page.first ? page.first - 1 : result.length;
+      const hasNextPage = result.length == page.first;
       const nodes = hasNextPage ? result.slice(0, -1) : result;
 
       const edges = nodes.map((node) => {

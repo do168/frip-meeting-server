@@ -6,6 +6,7 @@ import ServiceUtil from '../util/serviceUtil';
 import { MeetingPostParam } from '../model/input/MeetingPostParam';
 import { Page } from '../model/Connections/Page';
 import { validateBodyParams, validatePathParams, validateQueryParams } from '../middleware/validateParamsRoute';
+import { PageValidate } from '../model/enum/PageValidate';
 /**
  * @swagger
  * tags:
@@ -88,6 +89,8 @@ router.get(
     const page: Page = {
       pageNum: Number(req.query.pageNum) || 0,
       pageSize: Number(req.query.pageSize) || 0,
+      first: PageValidate.INVALIDATE,
+      after: PageValidate.INVALIDATE,
     };
     const result = await meetingServiceInstance.listMeetings(hostId, page);
     res.json({ result });

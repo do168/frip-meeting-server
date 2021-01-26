@@ -3,7 +3,8 @@ import { MeetingPostParam } from '../model/input/MeetingPostParam';
 import { Meeting } from '../model/resource/Meeting';
 import ServiceUtil from '../util/serviceUtil';
 import { Page } from '../model/Connections/Page';
-import { DBException } from '../util/customException';
+import { DBException, PagingException } from '../util/customException';
+import { PageValidate } from '../model/enum/PageValidate';
 
 export default class meetingRepository {
   // DI
@@ -90,9 +91,15 @@ export default class meetingRepository {
 
   // select
   public async listHostMeetings(hostId: string, page: Page): Promise<Meeting[]> {
-    const offset = this.serviceUtil.caculateOffset(page.pageNum, page.pageSize);
-    const param = [hostId, offset, page.pageSize];
-    const sql = `
+    if (
+      page.first == PageValidate.INVALIDATE &&
+      page.after == PageValidate.INVALIDATE &&
+      page.pageNum != PageValidate.INVALIDATE &&
+      page.pageSize != PageValidate.INVALIDATE
+    ) {
+      const offset = this.serviceUtil.caculateOffset(Number(page.pageNum), Number(page.pageSize));
+      const param = [hostId, offset, page.pageSize];
+      const sql = `
     SELECT
       id, 
       hostId,
@@ -110,15 +117,52 @@ export default class meetingRepository {
       hostId = ? and status = 1
     LIMIT ?, ?
     `;
-    const result = await mysql.connect(sql, param);
-    return result[0];
+      const result = await mysql.connect(sql, param);
+      return result[0];
+    } else if (
+      page.first != PageValidate.INVALIDATE &&
+      page.after != PageValidate.INVALIDATE &&
+      page.pageNum == PageValidate.INVALIDATE &&
+      page.pageSize == PageValidate.INVALIDATE
+    ) {
+      const param = [hostId, Number(page.after), Number(page.first)];
+      const sql = `
+    SELECT
+      id, 
+      hostId,
+      title, 
+      content,
+      startAt,
+      endAt,
+      deadline,
+      maxParticipant,
+      place,
+      updatedAt
+    FROM
+      meeting
+    WHERE
+      hostId = ? and id < ? and status = 1
+    ORDER BY id DESC
+    LIMIT ?
+    `;
+      const result = await mysql.connect(sql, param);
+      return result[0];
+    } else {
+      throw new PagingException();
+    }
   }
 
   // select
   public async listMeetings(page: Page): Promise<Array<Meeting>> {
-    const offset = this.serviceUtil.caculateOffset(page.pageNum, page.pageSize);
-    const param = [offset, page.pageSize];
-    const sql = `
+    if (
+      page.first == PageValidate.INVALIDATE &&
+      page.after == PageValidate.INVALIDATE &&
+      page.pageNum != PageValidate.INVALIDATE &&
+      page.pageSize != PageValidate.INVALIDATE
+    ) {
+      const offset = this.serviceUtil.caculateOffset(Number(page.pageNum), Number(page.pageSize));
+      const param = [offset, page.pageSize];
+      const sql = `
     SELECT
       id, 
       hostId,
@@ -136,11 +180,45 @@ export default class meetingRepository {
       status = 1
     LIMIT ?, ?
     `;
-    const result = await mysql.connect(sql, param);
-    if (this.serviceUtil.isEmpty(result)) {
-      throw new DBException();
+      const result = await mysql.connect(sql, param);
+      if (this.serviceUtil.isEmpty(result)) {
+        throw new DBException();
+      }
+      return result[0];
+    } else if (
+      page.first != PageValidate.INVALIDATE &&
+      page.after != PageValidate.INVALIDATE &&
+      page.pageNum == PageValidate.INVALIDATE &&
+      page.pageSize == PageValidate.INVALIDATE
+    ) {
+      const param = [Number(page.after), Number(page.first)];
+      const sql = `
+    SELECT
+      id, 
+      hostId,
+      title, 
+      content,
+      startAt,
+      endAt,
+      deadline,
+      maxParticipant,
+      place,
+      updatedAt
+    FROM
+      meeting  
+    WHERE
+      id < ? and status = 1
+    ORDER BY id DESC  
+    LIMIT ?
+    `;
+      const result = await mysql.connect(sql, param);
+      if (this.serviceUtil.isEmpty(result)) {
+        throw new DBException();
+      }
+      return result[0];
+    } else {
+      throw new PagingException();
     }
-    return result[0];
   }
 
   // delete

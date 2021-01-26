@@ -2,8 +2,9 @@ import { Mysql as mysql } from '../config/mysql';
 import { ReviewPostParam } from '../model/input/ReviewPostParam';
 import { Page } from '../model/Connections/Page';
 import { Review } from '../model/resource/Review';
-import { DBException } from '../util/customException';
+import { DBException, PagingException } from '../util/customException';
 import ServiceUtil from '../util/serviceUtil';
+import { PageValidate } from '../model/enum/PageValidate';
 
 export default class reviewRepository {
   private serviceUtil: ServiceUtil;
@@ -59,9 +60,15 @@ export default class reviewRepository {
   }
 
   public async listMeetingReviews(meetingId: number, page: Page): Promise<Review[]> {
-    const offset = this.serviceUtil.caculateOffset(page.pageNum, page.pageSize);
-    const param = [meetingId, offset, page.pageSize];
-    const sql = `
+    if (
+      page.first == PageValidate.INVALIDATE &&
+      page.after == PageValidate.INVALIDATE &&
+      page.pageNum != PageValidate.INVALIDATE &&
+      page.pageSize != PageValidate.INVALIDATE
+    ) {
+      const offset = this.serviceUtil.caculateOffset(Number(page.pageNum), Number(page.pageSize));
+      const param = [meetingId, offset, page.pageSize];
+      const sql = `
     SELECT
       id,
       userId,
@@ -74,17 +81,52 @@ export default class reviewRepository {
       meetingId = ? and status = 1
     LIMIT ?, ?
     `;
-    const result = await mysql.connect(sql, param);
-    if (this.serviceUtil.isEmpty(result)) {
-      throw new DBException();
+      const result = await mysql.connect(sql, param);
+      if (this.serviceUtil.isEmpty(result)) {
+        throw new DBException();
+      }
+      return result[0];
+    } else if (
+      page.first != PageValidate.INVALIDATE &&
+      page.after != PageValidate.INVALIDATE &&
+      page.pageNum == PageValidate.INVALIDATE &&
+      page.pageSize == PageValidate.INVALIDATE
+    ) {
+      const param = [meetingId, Number(page.after), Number(page.first)];
+      const sql = `
+    SELECT
+      id,
+      userId,
+      title,
+      content,
+      updatedAt
+    FROM
+      review
+    WHERE
+      meetingId = ? and id < ? and status = 1
+    ORDER BY id DESC 
+    LIMIT ?
+    `;
+      const result = await mysql.connect(sql, param);
+      if (this.serviceUtil.isEmpty(result)) {
+        throw new DBException();
+      }
+      return result[0];
+    } else {
+      throw new PagingException();
     }
-    return result[0];
   }
 
   public async listUserReviews(userId: string, page: Page): Promise<Review[]> {
-    const offset = this.serviceUtil.caculateOffset(page.pageNum, page.pageSize);
-    const param = [userId, offset, page.pageSize];
-    const sql = `
+    if (
+      page.first == PageValidate.INVALIDATE &&
+      page.after == PageValidate.INVALIDATE &&
+      page.pageNum != PageValidate.INVALIDATE &&
+      page.pageSize != PageValidate.INVALIDATE
+    ) {
+      const offset = this.serviceUtil.caculateOffset(Number(page.pageNum), Number(page.pageSize));
+      const param = [userId, offset, page.pageSize];
+      const sql = `
     select
       id,
       userId,
@@ -97,17 +139,52 @@ export default class reviewRepository {
       userId = ? and status = 1
     LIMIT ?, ?
     `;
-    const result = await mysql.connect(sql, param);
-    if (this.serviceUtil.isEmpty(result)) {
-      throw new DBException();
+      const result = await mysql.connect(sql, param);
+      if (this.serviceUtil.isEmpty(result)) {
+        throw new DBException();
+      }
+      return result[0];
+    } else if (
+      page.first != PageValidate.INVALIDATE &&
+      page.after != PageValidate.INVALIDATE &&
+      page.pageNum == PageValidate.INVALIDATE &&
+      page.pageSize == PageValidate.INVALIDATE
+    ) {
+      const param = [userId, Number(page.after), Number(page.first)];
+      const sql = `
+    select
+      id,
+      userId,
+      title,
+      content,
+      updatedAt
+    FROM
+      review
+    WHERE
+      userId = ? and id < ? and status = 1
+    ORDER BY id DESC
+    LIMIT ?
+    `;
+      const result = await mysql.connect(sql, param);
+      if (this.serviceUtil.isEmpty(result)) {
+        throw new DBException();
+      }
+      return result[0];
+    } else {
+      throw new PagingException();
     }
-    return result[0];
   }
 
   public async listReviews(page: Page): Promise<Review[]> {
-    const offset = this.serviceUtil.caculateOffset(page.pageNum, page.pageSize);
-    const param = [offset, page.pageSize];
-    const sql = `
+    if (
+      page.first == PageValidate.INVALIDATE &&
+      page.after == PageValidate.INVALIDATE &&
+      page.pageNum != PageValidate.INVALIDATE &&
+      page.pageSize != PageValidate.INVALIDATE
+    ) {
+      const offset = this.serviceUtil.caculateOffset(Number(page.pageNum), Number(page.pageSize));
+      const param = [offset, page.pageSize];
+      const sql = `
     select
       id,
       userId,
@@ -120,11 +197,40 @@ export default class reviewRepository {
       status = 1
     LIMIT ?, ?
     `;
-    const result = await mysql.connect(sql, param);
-    if (this.serviceUtil.isEmpty(result)) {
-      throw new DBException();
+      const result = await mysql.connect(sql, param);
+      if (this.serviceUtil.isEmpty(result)) {
+        throw new DBException();
+      }
+      return result[0];
+    } else if (
+      page.first != PageValidate.INVALIDATE &&
+      page.after != PageValidate.INVALIDATE &&
+      page.pageNum == PageValidate.INVALIDATE &&
+      page.pageSize == PageValidate.INVALIDATE
+    ) {
+      const param = [Number(page.after), Number(page.first)];
+      const sql = `
+    select
+      id,
+      userId,
+      title,
+      content,
+      updatedAt
+    FROM
+      review
+    WHERE
+      id < ? and status = 1
+    ORDER BY id DESC
+    LIMIT ?
+    `;
+      const result = await mysql.connect(sql, param);
+      if (this.serviceUtil.isEmpty(result)) {
+        throw new DBException();
+      }
+      return result[0];
+    } else {
+      throw new PagingException();
     }
-    return result[0];
   }
 
   public async listAllMeetingReviews(meetingId: readonly number[]): Promise<Review[]> {
