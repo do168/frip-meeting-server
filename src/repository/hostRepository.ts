@@ -30,7 +30,6 @@ export default class hostRepository {
   }
 
   public async getAllHost(hostIds: readonly string[]): Promise<Host[]> {
-    console.log(hostIds);
     const param = [hostIds];
     const sql = `
     SELECT
@@ -41,7 +40,6 @@ export default class hostRepository {
       id IN (?) and status = 1
     `;
     const result = await mysql.connect(sql, param);
-    console.log(result);
     if (this.serviceUtil.isEmpty(result)) {
       throw new DBException();
     }

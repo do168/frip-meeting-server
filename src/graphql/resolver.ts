@@ -60,7 +60,7 @@ const resolvers = {
       const hostId = args.hostId ? String(args.hostId) : '';
       const page: Page = { pageNum: args.page.pageNum || 0, pageSize: args.page.pageSize ? args.page.pageSize + 1 : 0 };
       const result = await meetingServiceInstance.listMeetings(hostId, page);
-      const totalcount = result.length - 1;
+      const totalcount = result.length == args.page.pageSize + 1 ? args.page.pageSize : result.length;
       const hasNextPage = result.length > args.page.pageSize;
       const nodes = hasNextPage ? result.slice(0, -1) : result;
 
@@ -95,7 +95,8 @@ const resolvers = {
         pageSize: args.page.pageSize ? args.page.pageSize + 1 : 0,
       };
       const result = await reviewServiceInstance.listReviews(meetingId, userId, page);
-      const totalcount = result.length - 1;
+      const totalcount = result.length == args.page.pageSize + 1 ? args.page.pageSize : result.length;
+
       const hasNextPage = result.length > args.page.pageSize;
       const nodes = hasNextPage ? result.slice(0, -1) : result;
 

@@ -19,7 +19,6 @@ export async function createSchema(): Promise<void> {
 
   const schema = readFileSync(`${__dirname}/../internals/schema.sql`).toString();
   const replaced = schema.replace(/`frip`/g, '`frientripTest`');
-  // console.log(replaced);
 
   await con.query(replaced);
   con.destroy();

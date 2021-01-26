@@ -33,7 +33,7 @@ export default class ServiceUtil {
 
   // 객체의 속성 중 빈 값 체크
   public checkEmptyPostParam(obj: any, keys: any): void {
-    for (let key in keys) {
+    for (const key in keys) {
       if (this.isEmpty(obj[keys[key]])) {
         throw new NullException(keys[key]);
       }

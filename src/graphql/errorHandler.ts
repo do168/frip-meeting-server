@@ -19,33 +19,10 @@ import { GraphQLError } from 'graphql';
  * @return Error
  */
 export function errorHandler(err: Error): Error {
-  if (
-    err instanceof GraphQLError &&
-    err.originalError instanceof
-      (NullException ||
-        TypeException ||
-        NotCreationException ||
-        NotExistsException ||
-        TimeLimitException ||
-        FullParticipationException ||
-        ReviewConditionException ||
-        NotFoundException ||
-        DateFormatException)
-  ) {
-    return toApolloError(err, err.originalError.code);
-  } else if (
-    err instanceof
-    (NullException ||
-      TypeException ||
-      NotCreationException ||
-      NotExistsException ||
-      TimeLimitException ||
-      FullParticipationException ||
-      ReviewConditionException ||
-      NotFoundException ||
-      DateFormatException)
-  ) {
-    return toApolloError(err, err.code);
+  if (err instanceof GraphQLError && err.originalError instanceof Error && err.originalError.name == 'Client') {
+    return toApolloError(err, 'EXTERNAL_CLIENT_ERROR');
+  } else if (err instanceof Error && err.name == 'Client') {
+    return toApolloError(err, 'EXTERNAL_CLIENT_ERROR');
   } else {
     console.error('internal server error:', err); // internal server error
   }
