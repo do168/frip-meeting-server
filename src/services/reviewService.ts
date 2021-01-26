@@ -52,7 +52,7 @@ export default class reviewService {
       throw new NullException('id');
     }
     const result = await this.reviewRepository.getReview(id);
-    result.updatedAt = this.serviceUtil.dateToStr(new Date(result.updatedAt));
+    // result.updatedAt = this.serviceUtil.dateToStr(new Date(result.updatedAt));
     return result;
   }
 
@@ -69,25 +69,16 @@ export default class reviewService {
     // user 필터 리뷰 리스트
     if (this.serviceUtil.isEmpty(meetingId) && !this.serviceUtil.isEmpty(userId)) {
       const result = await this.reviewRepository.listUserReviews(userId, page);
-      for (const i in result) {
-        result[i].updatedAt = this.serviceUtil.dateToStr(new Date(result[i].updatedAt));
-      }
       return result;
     }
     // meeting 필터 리뷰 리스트
     else if (!this.serviceUtil.isEmpty(meetingId) && this.serviceUtil.isEmpty(userId)) {
       const result = await this.reviewRepository.listMeetingReviews(meetingId, page);
-      for (const i in result) {
-        result[i].updatedAt = this.serviceUtil.dateToStr(new Date(result[i].updatedAt));
-      }
       return result;
     }
     // 전체 리뷰 리스트
     else {
       const result = await this.reviewRepository.listReviews(page);
-      for (const i in result) {
-        result[i].updatedAt = this.serviceUtil.dateToStr(new Date(result[i].updatedAt));
-      }
       return result;
     }
   }
@@ -103,17 +94,11 @@ export default class reviewService {
     // user 필터 리뷰 리스트
     if (this.serviceUtil.isEmpty(meetingId) && !this.serviceUtil.isEmpty(userId)) {
       const result = await this.reviewRepository.listAllUserReviews(userId);
-      for (const i in result) {
-        result[i].updatedAt = this.serviceUtil.dateToStr(new Date(result[i].updatedAt));
-      }
       return result;
     }
     // meeting 필터 리뷰 리스트
     else if (!this.serviceUtil.isEmpty(meetingId) && this.serviceUtil.isEmpty(userId)) {
       const result = await this.reviewRepository.listAllMeetingReviews(meetingId);
-      for (const i in result) {
-        result[i].updatedAt = this.serviceUtil.dateToStr(new Date(result[i].updatedAt));
-      }
       return result;
     }
     // 전체 리뷰 리스트
@@ -133,7 +118,7 @@ export default class reviewService {
       throw new NullException('id');
     }
     const result = await this.reviewRepository.deleteReview(id);
-    // affectedRow가 1이 아닌 경우 에러 리턴
+    // result가 1이 아닌 경우 에러 리턴
     if (result != 1) {
       throw new NotExistsException();
     }
@@ -155,7 +140,7 @@ export default class reviewService {
     this.serviceUtil.checkEmptyPostParam(reviewInfo, Object.keys(reviewInfo));
 
     const result = await this.reviewRepository.updateReview(id, reviewInfo);
-    // affectedRow가 1이 아닌 경우 에러 리턴
+    // result가 1이 아닌 경우 에러 리턴
     if (result != 1) {
       throw new NotExistsException();
     }

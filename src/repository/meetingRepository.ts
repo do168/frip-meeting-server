@@ -38,9 +38,9 @@ export default class meetingRepository {
       ?,
       ?,
       ?,
-      STR_TO_DATE(?, '%Y-%m-%d %H:%i:%s'),
-      STR_TO_DATE(?, '%Y-%m-%d %H:%i:%s'),
-      STR_TO_DATE(?, '%Y-%m-%d %H:%i:%s'),
+      ?,
+      ?,
+      ?,
       ?,
       ?
     )`;

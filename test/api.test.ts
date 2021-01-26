@@ -43,7 +43,7 @@ const meetingPostParamWithDifferentType = {
   hostId: 'HostFirst',
   title: '날짜 타입 에러 테스트',
   content: '파라미터 타입 에러 테스트. 이 미팅은 생성되면 안됩니다',
-  startAt: '2009-01-04 12:33:33',
+  startAt: '2009-01-04T12:33:33',
   endAt: '2009-01-04 12:33:33',
   deadline: '2009-01-02 12:33:33',
   maxParticipant: '이건아니지',

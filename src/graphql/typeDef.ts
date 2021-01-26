@@ -60,13 +60,13 @@ const typeDefs = gql`
     content: String!
 
     " 모임 시작 시간 "
-    startAt: String!
+    startAt: Date!
 
     " 모임 종료 시간 "
-    endAt: String!
+    endAt: Date!
 
     " 모임 마감 시간 "
-    deadline: String!
+    deadline: Date!
 
     " 모임 참가 최대 인원 "
     maxParticipant: Int!
@@ -75,7 +75,7 @@ const typeDefs = gql`
     place: String!
 
     " 모임 등록글 업데이트 시간 "
-    updatedAt: String!
+    updatedAt: Date!
 
     " 현재 참가 유저"
     participatesUsers: [User!]
@@ -98,7 +98,7 @@ const typeDefs = gql`
     content: String!
 
     " 등록 또는 수정 시간 "
-    updatedAt: String!
+    updatedAt: Date!
   }
 
   type User {
@@ -155,6 +155,8 @@ const typeDefs = gql`
     " delete 리턴 형식 "
     message: String!
   }
+
+  scalar Date
 `;
 
 export default typeDefs;

@@ -25,13 +25,13 @@ export default class meetingService {
   /**
    *
    * @param param 미팅 파라미터 [제목, 내용, 시작시간, 종료시간, 마감시간, 참가최대인원, 장소]
-   * @return [ affectedRow, insertId ]
+   * @return result
    */
   public async createMeeting(meetingInfo: MeetingPostParam): Promise<number> {
     // meetingInfo 빈 값 체크
     this.serviceUtil.checkEmptyPostParam(meetingInfo, Object.keys(meetingInfo));
 
-    // meetingInfo 날짜 형식 체크
+    // // meetingInfo 날짜 형식 체크
     this.serviceUtil.checkCorrectDateFormat(meetingInfo.startAt);
     this.serviceUtil.checkCorrectDateFormat(meetingInfo.endAt);
     this.serviceUtil.checkCorrectDateFormat(meetingInfo.deadline);
@@ -57,10 +57,6 @@ export default class meetingService {
       throw new NullException('id');
     }
     const resultMeetingInfo: Meeting = await this.meetingRepository.getMeeting(id);
-    resultMeetingInfo.deadline = this.serviceUtil.dateToStr(new Date(resultMeetingInfo.deadline));
-    resultMeetingInfo.startAt = this.serviceUtil.dateToStr(new Date(resultMeetingInfo.startAt));
-    resultMeetingInfo.endAt = this.serviceUtil.dateToStr(new Date(resultMeetingInfo.endAt));
-    resultMeetingInfo.updatedAt = this.serviceUtil.dateToStr(new Date(resultMeetingInfo.updatedAt));
 
     return resultMeetingInfo;
   }
@@ -78,17 +74,11 @@ export default class meetingService {
     // hostId가 값이 없는 경우 전체 모임을 조회한다
     if (this.serviceUtil.isEmpty(hostId)) {
       const result = await this.meetingRepository.listMeetings(page);
-      for (const i in result) {
-        result[i].deadline = this.serviceUtil.dateToStr(new Date(result[i].deadline));
-      }
       return result;
     }
     // hostId가 값이 있는 경우 해당 호스트의 모임을 조회한다.
     else {
       const result = await this.meetingRepository.listHostMeetings(hostId, page);
-      for (const i in result) {
-        result[i].deadline = this.serviceUtil.dateToStr(new Date(result[i].deadline));
-      }
       return result;
     }
   }
@@ -96,7 +86,7 @@ export default class meetingService {
   /**
    * 미팅 삭제 서비스
    * @param id 삭제할 미팅 ID
-   * @return affectedRow
+   * @return result
    */
   public async deleteMeeting(id: number): Promise<number> {
     // id 빈 값 체크
@@ -104,7 +94,7 @@ export default class meetingService {
       throw new NullException('id');
     }
     const result = await this.meetingRepository.deleteMeeting(id);
-    // affectedRow가 1이 아닌 경우 에러 리턴
+    // result가 1이 아닌 경우 에러 리턴
     if (result != 1) {
       throw new NotExistsException();
     }
@@ -115,7 +105,7 @@ export default class meetingService {
    * 모임 수정 서비스
    * @param id 모임 ID
    * @param meetingInfo 변경할 모임 정보
-   * @return affectedRow
+   * @return result
    */
   public async updateMeeting(id: number, meetingInfo: MeetingPostParam): Promise<number> {
     // id값 null 체크
@@ -127,7 +117,7 @@ export default class meetingService {
     this.serviceUtil.checkEmptyPostParam(meetingInfo, Object.keys(meetingInfo));
 
     const result = await this.meetingRepository.updateMeeting(id, meetingInfo);
-    // affectedRow가 1이 아닌 경우 에러 리턴
+    // result가 1이 아닌 경우 에러 리턴
     if (result != 1) {
       throw new NotExistsException();
     }
@@ -138,7 +128,7 @@ export default class meetingService {
    * 모임 참가 신청 서비스
    * @param id 참가할 모임 ID
    * @param userId 참가하는 유저 ID
-   * @return [ affectedRow, insertId ]
+   * @return result
    */
   public async createMeetingParticipation(id: number, userId: string): Promise<number> {
     // id 빈 값 체크
@@ -174,7 +164,7 @@ export default class meetingService {
    * 참가신청 취소 서비스
    * @param participationId 신청 취소할 참가 ID
    * @param userId 참가신청 취소할 유저 ID
-   * @return affectedRow
+   * @return result
    */
   public async deleteMeetingParticipation(id: number, userId: string): Promise<number> {
     // id 빈값 체크
@@ -194,7 +184,7 @@ export default class meetingService {
     }
 
     const result = await this.meetingRepository.deleteMeetingParticipation(id, userId);
-    // affectedRow가 1이 아닌 경우 에러 리턴
+    // result가 1이 아닌 경우 에러 리턴
     if (result != 1) {
       throw new NotExistsException();
     }
@@ -205,7 +195,7 @@ export default class meetingService {
    * 모임 출석 체크 서비스 - 모임 startAt 30분 후부터 가능하다.
    * @param id 모임 ID
    * @param userId 유저 ID
-   * @return affectedRow
+   * @return result
    */
   public async updateMeetingAttendance(id: number, userId: string): Promise<number> {
     // 파라미터 빈칸 체크
@@ -224,7 +214,7 @@ export default class meetingService {
     }
 
     const result = await this.meetingRepository.updateMeetingAttendance(id, userId);
-    // affectedRow가 1이 아닌 경우 에러 리턴
+    // result가 1이 아닌 경우 에러 리턴
     if (result != 1) {
       throw new NotExistsException();
     }
