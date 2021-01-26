@@ -1,7 +1,7 @@
 import { Mysql as mysql } from '../config/mysql';
 import { ReviewPostParam } from '../model/input/ReviewPostParam';
-import { Page } from '../model/Page';
-import { Review } from '../model/Review';
+import { Page } from '../model/Connections/Page';
+import { Review } from '../model/resource/Review';
 import { DBException } from '../util/customException';
 import ServiceUtil from '../util/serviceUtil';
 

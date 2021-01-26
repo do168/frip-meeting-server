@@ -90,4 +90,8 @@ export default class ServiceUtil {
       throw new DateFormatException();
     }
   }
+
+  public convertCursor(id: number | string, type: string): string {
+    return Buffer.from(id + type, 'utf8').toString('base64');
+  }
 }

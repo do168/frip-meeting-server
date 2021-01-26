@@ -1,6 +1,13 @@
 import { gql } from 'apollo-server-express';
 
 const typeDefs = gql`
+  enum DeleteStatus {
+    " 삭제 성공 "
+    SUCCESS
+
+    " 삭제 실패 "
+    FAIL
+  }
   type Query {
     meetings(hostId: String, page: Page!): MeetingConnection!
     meeting(id: Int!): Meeting!
@@ -12,14 +19,14 @@ const typeDefs = gql`
   type Mutation {
     createMeeting(input: MeetingPostParam): Meeting!
     updateMeeting(id: Int!, input: MeetingPostParam): Meeting!
-    deleteMeeting(id: Int!): Success!
+    deleteMeeting(id: Int!): DeleteStatus!
     createMeetingParticipation(meetingId: Int, userId: String): Participation!
-    deleteMeetingParticipation(meetingId: Int, userId: String): Success!
+    deleteMeetingParticipation(meetingId: Int, userId: String): DeleteStatus!
     updateAttendance(meetingId: Int!, userId: String!): Participation!
 
     createReview(input: ReviewPostParam): Review!
     updateReview(id: Int!, input: ReviewPostParam): Review!
-    deleteReview(id: Int!): Success!
+    deleteReview(id: Int!): DeleteStatus!
   }
 
   input MeetingPostParam {

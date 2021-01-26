@@ -4,7 +4,7 @@ import meetingService from '../services/meetingService';
 import meetingRepository from '../repository/meetingRepository';
 import ServiceUtil from '../util/serviceUtil';
 import { MeetingPostParam } from '../model/input/MeetingPostParam';
-import { Page } from '../model/Page';
+import { Page } from '../model/Connections/Page';
 import { validateBodyParams, validatePathParams, validateQueryParams } from '../middleware/validateParamsRoute';
 /**
  * @swagger

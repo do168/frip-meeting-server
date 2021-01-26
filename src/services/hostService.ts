@@ -6,7 +6,7 @@ import {
   FullParticipationException,
   NotCreationException,
 } from '../util/customException';
-import { Host } from '../model/Host';
+import { Host } from '../model/resource/Host';
 import hostRepository from '../repository/hostRepository';
 
 export default class hostService {

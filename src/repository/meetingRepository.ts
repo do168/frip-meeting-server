@@ -1,8 +1,8 @@
 import { Mysql as mysql } from '../config/mysql';
 import { MeetingPostParam } from '../model/input/MeetingPostParam';
-import { Meeting } from '../model/Meeting';
+import { Meeting } from '../model/resource/Meeting';
 import ServiceUtil from '../util/serviceUtil';
-import { Page } from '../model/Page';
+import { Page } from '../model/Connections/Page';
 import { DBException } from '../util/customException';
 
 export default class meetingRepository {

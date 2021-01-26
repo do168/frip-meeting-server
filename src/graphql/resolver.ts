@@ -1,24 +1,24 @@
 import { MeetingPostParam } from '../model/input/MeetingPostParam';
 import { ReviewPostParam } from '../model/input/ReviewPostParam';
-import { Meeting } from '../model/Meeting';
-import { Page } from '../model/Page';
-import { Review } from '../model/Review';
+import { Meeting } from '../model/resource/Meeting';
+import { Page } from '../model/Connections/Page';
+import { Review } from '../model/resource/Review';
 import meetingRepository from '../repository/meetingRepository';
 import reviewRepository from '../repository/reviewRepository';
 import meetingService from '../services/meetingService';
 import reviewService from '../services/reviewService';
 import ServiceUtil from '../util/serviceUtil';
 import DataLoader from 'dataloader';
-import { Host } from '../model/Host';
-import { User } from '../model/User';
-import { Connection } from '../model/Connection';
+import { Host } from '../model/resource/Host';
+import { User } from '../model/resource/User';
+import { Connection } from '../model/Connections/Connection';
 import hostRepository from '../repository/hostRepository';
 import hostService from '../services/hostService';
 import userRepository from '../repository/userRepository';
 import userService from '../services/userService';
-import { Success } from '../model/Success';
-import { Participation } from '../model/Participation';
+import { Participation } from '../model/resource/Participation';
 import { GraphQLScalarType, Kind } from 'graphql';
+import { DeleteStatus } from '../model/enum/DeleteStatus';
 
 const serviceUtilInstance = new ServiceUtil();
 const meetingRepositoryInstance = new meetingRepository(serviceUtilInstance);
@@ -60,6 +60,7 @@ const resolvers = {
       const hostId = args.hostId ? String(args.hostId) : '';
       const page: Page = { pageNum: args.page.pageNum || 0, pageSize: args.page.pageSize ? args.page.pageSize + 1 : 0 };
       const result = await meetingServiceInstance.listMeetings(hostId, page);
+
       const totalcount = result.length == args.page.pageSize + 1 ? args.page.pageSize : result.length;
       const hasNextPage = result.length > args.page.pageSize;
       const nodes = hasNextPage ? result.slice(0, -1) : result;
@@ -67,7 +68,7 @@ const resolvers = {
       const edges = nodes.map((node) => {
         return {
           node: node,
-          cursor: Buffer.from(node.id + 'Meeting', 'utf8').toString('base64'),
+          cursor: serviceUtilInstance.convertCursor(node.id, 'Meeting'),
         };
       });
 
@@ -75,7 +76,7 @@ const resolvers = {
         totalCount: totalcount,
         pageInfo: {
           hasNextPage: hasNextPage,
-          endCursor: Buffer.from(nodes[nodes.length - 1].id + 'Meeting', 'utf8').toString('base64'),
+          endCursor: serviceUtilInstance.convertCursor(nodes[nodes.length - 1].id, 'Meeting'),
         },
         edges: edges || [],
       };
@@ -95,15 +96,15 @@ const resolvers = {
         pageSize: args.page.pageSize ? args.page.pageSize + 1 : 0,
       };
       const result = await reviewServiceInstance.listReviews(meetingId, userId, page);
-      const totalcount = result.length == args.page.pageSize + 1 ? args.page.pageSize : result.length;
 
+      const totalcount = result.length == args.page.pageSize + 1 ? args.page.pageSize : result.length;
       const hasNextPage = result.length > args.page.pageSize;
       const nodes = hasNextPage ? result.slice(0, -1) : result;
 
       const edges = nodes.map((node) => {
         return {
           node: node,
-          cursor: Buffer.from(node.id + 'Review', 'utf8').toString('base64'),
+          cursor: serviceUtilInstance.convertCursor(node.id, 'Review'),
         };
       });
 
@@ -111,10 +112,89 @@ const resolvers = {
         totalCount: totalcount,
         pageInfo: {
           hasNextPage: hasNextPage,
-          endCursor: Buffer.from(nodes[nodes.length - 1].id + 'Review', 'utf8').toString('base64'),
+          endCursor: serviceUtilInstance.convertCursor(nodes[nodes.length - 1].id, 'Review'),
         },
         edges: edges || [],
       };
+    },
+  },
+
+  Mutation: {
+    createMeeting: async (_: unknown, { input }: { input: MeetingPostParam }): Promise<Meeting> => {
+      const id = await meetingServiceInstance.createMeeting(input);
+      const result = await meetingServiceInstance.getMeeting(id);
+      return result;
+    },
+
+    updateMeeting: async (_: unknown, args: any, { input }: { input: MeetingPostParam }): Promise<Meeting> => {
+      const id = args.id ? Number(args.id) : 0;
+      const result = await meetingServiceInstance.getMeeting(id);
+      return result;
+    },
+
+    deleteMeeting: async (_: unknown, args: any): Promise<DeleteStatus> => {
+      const id = args.id ? Number(args.id) : 0;
+      try {
+        meetingServiceInstance.deleteMeeting(id);
+        return DeleteStatus.SUCCESS;
+      } catch (error) {
+        return DeleteStatus.FAIL;
+      }
+    },
+
+    createMeetingParticipation: async (_: unknown, args: any): Promise<Participation> => {
+      const meetingId = args.meetingId ? Number(args.meetingId) : 0;
+      const userId = args.userId ? String(args.userId) : '';
+      await meetingServiceInstance.createMeetingParticipation(meetingId, userId);
+      return {
+        meeting: await meetingServiceInstance.getMeeting(meetingId),
+        user: await userServiceInstance.getUser(userId),
+      };
+    },
+
+    deleteMeetingParticipation: async (_: unknown, args: any): Promise<DeleteStatus> => {
+      const meetingId = args.meetingId ? Number(args.meetingId) : 0;
+      const userId = args.userId ? String(args.userId) : '';
+      try {
+        await meetingServiceInstance.deleteMeetingParticipation(meetingId, userId);
+        return DeleteStatus.SUCCESS;
+      } catch (error) {
+        return DeleteStatus.FAIL;
+      }
+    },
+
+    updateAttendance: async (_: unknown, args: any): Promise<Participation> => {
+      const meetingId = args.meetingId ? Number(args.meetingId) : 0;
+      const userId = args.userId ? String(args.userId) : '';
+      await meetingServiceInstance.updateMeetingAttendance(meetingId, userId);
+      return {
+        meeting: await meetingServiceInstance.getMeeting(meetingId),
+        user: await userServiceInstance.getUser(userId),
+      };
+    },
+
+    createReview: async (_: unknown, { input }: { input: ReviewPostParam }): Promise<Review> => {
+      const condition = await meetingServiceInstance.checkReviewCondition(input);
+      const id = await reviewServiceInstance.createReview(condition, input);
+      const result = await reviewServiceInstance.getReview(id);
+      return result;
+    },
+
+    updateReview: async (_: unknown, args: any, { input }: { input: ReviewPostParam }): Promise<Review> => {
+      const id = args.id ? Number(args.id) : 0;
+      await reviewServiceInstance.updateReview(id, input);
+      const result = await reviewServiceInstance.getReview(id);
+      return result; // 리턴값을 어떻게 해야할까?
+    },
+
+    deleteReview: async (_: unknown, args: any): Promise<DeleteStatus> => {
+      const id = args.id ? Number(args.id) : 0;
+      try {
+        await reviewServiceInstance.deleteReview(id);
+        return DeleteStatus.SUCCESS;
+      } catch (error) {
+        return DeleteStatus.FAIL;
+      }
     },
   },
 
@@ -210,85 +290,6 @@ const resolvers = {
 
     nickname: (parent: Host): string => {
       return parent.nickname;
-    },
-  },
-
-  Mutation: {
-    createMeeting: async (_: unknown, { input }: { input: MeetingPostParam }): Promise<Meeting> => {
-      const id = await meetingServiceInstance.createMeeting(input);
-      const result = await meetingServiceInstance.getMeeting(id);
-      return result;
-    },
-
-    updateMeeting: async (_: unknown, args: any, { input }: { input: MeetingPostParam }): Promise<Meeting> => {
-      const id = args.id ? Number(args.id) : 0;
-      const result = await meetingServiceInstance.getMeeting(id);
-      return result;
-    },
-
-    deleteMeeting: async (_: unknown, args: any): Promise<Success> => {
-      const id = args.id ? Number(args.id) : 0;
-      try {
-        meetingServiceInstance.deleteMeeting(id);
-        return { message: `${id} meeting delete Success` };
-      } catch (error) {
-        return { message: `${id} meeting delete Fail ` + error.message };
-      }
-    },
-
-    createMeetingParticipation: async (_: unknown, args: any): Promise<Participation> => {
-      const meetingId = args.meetingId ? Number(args.meetingId) : 0;
-      const userId = args.userId ? String(args.userId) : '';
-      await meetingServiceInstance.createMeetingParticipation(meetingId, userId);
-      return {
-        meeting: await meetingServiceInstance.getMeeting(meetingId),
-        user: await userServiceInstance.getUser(userId),
-      };
-    },
-
-    deleteMeetingParticipation: async (_: unknown, args: any): Promise<Success> => {
-      const meetingId = args.meetingId ? Number(args.meetingId) : 0;
-      const userId = args.userId ? String(args.userId) : '';
-      try {
-        await meetingServiceInstance.deleteMeetingParticipation(meetingId, userId);
-        return { message: `meeting participation cancel Success` };
-      } catch (error) {
-        return { message: `meeting participation cancel Fail ` + error.message };
-      }
-    },
-
-    updateAttendance: async (_: unknown, args: any): Promise<Participation> => {
-      const meetingId = args.meetingId ? Number(args.meetingId) : 0;
-      const userId = args.userId ? String(args.userId) : '';
-      await meetingServiceInstance.updateMeetingAttendance(meetingId, userId);
-      return {
-        meeting: await meetingServiceInstance.getMeeting(meetingId),
-        user: await userServiceInstance.getUser(userId),
-      };
-    },
-
-    createReview: async (_: unknown, { input }: { input: ReviewPostParam }): Promise<Review> => {
-      const condition = await meetingServiceInstance.checkReviewCondition(input);
-      const id = await reviewServiceInstance.createReview(condition, input);
-      const result = await reviewServiceInstance.getReview(id);
-      return result;
-    },
-
-    updateReview: async (_: unknown, args: any, { input }: { input: ReviewPostParam }): Promise<Review> => {
-      const id = args.id ? Number(args.id) : 0;
-      await reviewServiceInstance.updateReview(id, input);
-      const result = await reviewServiceInstance.getReview(id);
-      return result; // 리턴값을 어떻게 해야할까?
-    },
-
-    deleteReview: async (_: unknown, args: any): Promise<Success> => {
-      const id = args.id ? Number(args.id) : 0;
-      try {
-        await reviewServiceInstance.deleteReview(id);
-        return { message: `${id} review delete Success` };
-      } catch (error) {
-        return { message: `${id} review delete Fail ` + error.message };
-      }
     },
   },
 

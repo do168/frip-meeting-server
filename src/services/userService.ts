@@ -6,7 +6,7 @@ import {
   FullParticipationException,
   NotCreationException,
 } from '../util/customException';
-import { User } from '../model/User';
+import { User } from '../model/resource/User';
 import userRepository from '../repository/userRepository';
 
 export default class userService {

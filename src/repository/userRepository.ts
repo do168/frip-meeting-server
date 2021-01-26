@@ -1,7 +1,7 @@
 import { Mysql as mysql } from '../config/mysql';
 import ServiceUtil from '../util/serviceUtil';
 import { DBException } from '../util/customException';
-import { User } from '../model/User';
+import { User } from '../model/resource/User';
 
 export default class userRepository {
   // DI

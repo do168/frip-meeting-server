@@ -1,7 +1,7 @@
 import { Mysql as mysql } from '../config/mysql';
 import ServiceUtil from '../util/serviceUtil';
 import { DBException } from '../util/customException';
-import { Host } from '../model/Host';
+import { Host } from '../model/resource/Host';
 
 export default class hostRepository {
   // DI

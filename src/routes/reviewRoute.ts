@@ -6,7 +6,7 @@ import ServiceUtil from '../util/serviceUtil';
 import { ReviewPostParam } from '../model/input/ReviewPostParam';
 import meetingRepository from '../repository/meetingRepository';
 import meetingService from '../services/meetingService';
-import { Page } from '../model/Page';
+import { Page } from '../model/Connections/Page';
 import { validateBodyParams, validatePathParams, validateQueryParams } from '../middleware/validateParamsRoute';
 
 /**

@@ -1,5 +1,5 @@
 import { ReviewPostParam } from '../model/input/ReviewPostParam';
-import { Review } from '../model/Review';
+import { Review } from '../model/resource/Review';
 import reviewRepository from '../repository/reviewRepository';
 import ServiceUtil from '../util/serviceUtil';
 import {
@@ -8,7 +8,7 @@ import {
   ReviewConditionException,
   NotCreationException,
 } from '../util/customException';
-import { Page } from '../model/Page';
+import { Page } from '../model/Connections/Page';
 
 export default class reviewService {
   private reviewRepository: reviewRepository;

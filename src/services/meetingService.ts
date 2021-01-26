@@ -1,5 +1,5 @@
 import { MeetingPostParam } from '../model/input/MeetingPostParam';
-import { Meeting } from '../model/Meeting';
+import { Meeting } from '../model/resource/Meeting';
 import meetingRepository from '../repository/meetingRepository';
 import ServiceUtil from '../util/serviceUtil';
 import {
@@ -10,7 +10,7 @@ import {
   NotCreationException,
 } from '../util/customException';
 import { ReviewPostParam } from '../model/input/ReviewPostParam';
-import { Page } from '../model/Page';
+import { Page } from '../model/Connections/Page';
 
 export default class meetingService {
   private meetingRepository: meetingRepository;
