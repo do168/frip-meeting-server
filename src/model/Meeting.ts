@@ -3,11 +3,11 @@ export interface Meeting {
   hostId: string;
   title: string;
   content: string;
-  startAt: string;
-  endAt: string;
-  deadline: string;
+  startAt: Date;
+  endAt: Date;
+  deadline: Date;
   maxParticipant: number;
   place: string;
-  updatedAt: string;
+  updatedAt: Date;
   cntCurrentParticipant: number;
 }

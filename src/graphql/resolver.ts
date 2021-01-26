@@ -18,6 +18,7 @@ import userRepository from '../repository/userRepository';
 import userService from '../services/userService';
 import { Success } from '../model/Success';
 import { Participation } from '../model/Participation';
+import { GraphQLScalarType, Kind } from 'graphql';
 
 const serviceUtilInstance = new ServiceUtil();
 const meetingRepositoryInstance = new meetingRepository(serviceUtilInstance);
@@ -55,7 +56,6 @@ const resolvers = {
       return result;
     },
 
-    // Connection 객체로 페이징하여 리턴하기 -> 이게 맞나 싶습니다.
     meetings: async (_: unknown, args: any): Promise<Connection<Meeting>> => {
       const hostId = args.hostId ? String(args.hostId) : '';
       const page: Page = { pageNum: args.page.pageNum || 0, pageSize: args.page.pageSize ? args.page.pageSize + 1 : 0 };
@@ -136,15 +136,15 @@ const resolvers = {
       return parent.content;
     },
 
-    startAt: (parent: Meeting): string => {
+    startAt: (parent: Meeting): Date => {
       return parent.startAt;
     },
 
-    endAt: (parent: Meeting): string => {
+    endAt: (parent: Meeting): Date => {
       return parent.endAt;
     },
 
-    deadline: (parent: Meeting): string => {
+    deadline: (parent: Meeting): Date => {
       return parent.deadline;
     },
 
@@ -156,7 +156,7 @@ const resolvers = {
       return parent.place;
     },
 
-    updatedAt: (parent: Meeting): string => {
+    updatedAt: (parent: Meeting): Date => {
       return parent.updatedAt;
     },
     participatesUsers: async (parent: Meeting): Promise<User[]> => {
@@ -183,7 +183,7 @@ const resolvers = {
       return parent.content;
     },
 
-    updatedAt: (parent: Review): string => {
+    updatedAt: (parent: Review): Date => {
       return parent.updatedAt;
     },
 
@@ -291,6 +291,26 @@ const resolvers = {
       }
     },
   },
+
+  Date: new GraphQLScalarType({
+    name: 'Date',
+    description: 'Date custom scalar type',
+    parseValue(value) {
+      return new Date(value);
+    },
+    serialize(value) {
+      if (typeof value === 'string') {
+        return new Date(value).toString();
+      }
+      return value.toString();
+    },
+    parseLiteral(ast) {
+      if (ast.kind === Kind.INT) {
+        return parseInt(ast.value, 10);
+      }
+      return null;
+    },
+  }),
 };
 
 export default resolvers;
