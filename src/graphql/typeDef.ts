@@ -87,10 +87,10 @@ const typeDefs = gql`
     updatedAt: Date!
 
     " 현재 참가 유저"
-    participatesUsers: [User!]
+    participatesUsers: [User!]!
 
     " 모임 후기 "
-    connectedReviews: [Review!]
+    connectedReviews: [Review!]!
   }
 
   type Review {
@@ -142,7 +142,7 @@ const typeDefs = gql`
   type MeetingConnection {
     totalCount: Int!
     pageInfo: PageInfo!
-    edges: [MeetingEdge!]
+    edges: [MeetingEdge!]!
   }
 
   type MeetingEdge {
@@ -153,12 +153,12 @@ const typeDefs = gql`
   type ReviewConnection {
     totalCount: Int!
     pageInfo: PageInfo!
-    edges: [ReviewEdge!]
+    edges: [ReviewEdge!]!
   }
 
   type ReviewEdge {
     cursor: String!
-    node: Review
+    node: Review!
   }
 
   scalar Date
