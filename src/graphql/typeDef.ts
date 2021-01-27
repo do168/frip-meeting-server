@@ -17,15 +17,15 @@ const typeDefs = gql`
   }
 
   type Mutation {
-    createMeeting(input: MeetingPostParam): Meeting!
-    updateMeeting(id: ID!, input: MeetingPostParam): Meeting!
+    createMeeting(input: MeetingPostParam!): Meeting!
+    updateMeeting(id: ID!, input: MeetingPostParam!): Meeting!
     deleteMeeting(id: ID!): DeleteStatus!
     createMeetingParticipation(meetingId: Int, userId: String): Participation!
     deleteMeetingParticipation(meetingId: Int, userId: String): DeleteStatus!
     updateAttendance(meetingId: Int!, userId: String!): Participation!
 
-    createReview(input: ReviewPostParam): Review!
-    updateReview(id: ID!, input: ReviewPostParam): Review!
+    createReview(input: ReviewPostParam!): Review!
+    updateReview(id: ID!, input: ReviewPostParam!): Review!
     deleteReview(id: ID!): DeleteStatus!
   }
 
