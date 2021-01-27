@@ -347,7 +347,7 @@ export default class meetingRepository {
     limit 0, 1000;
     `;
     const result = await mysql.connect(sql, param);
-    if (this.serviceUtil.isEmpty(result)) {
+    if (this.serviceUtil.isEmpty(result) || this.serviceUtil.isEmpty(result[0])) {
       throw new DBException();
     }
     return result[0][0].CntMeetingParticipant;
@@ -367,7 +367,7 @@ export default class meetingRepository {
     limit 1;
     `;
     const result = await mysql.connect(sql, param);
-    if (this.serviceUtil.isEmpty(result)) {
+    if (this.serviceUtil.isEmpty(result) || this.serviceUtil.isEmpty(result[0])) {
       throw new DBException();
     }
     return result[0][0].cnt === 1;
@@ -387,9 +387,25 @@ export default class meetingRepository {
     limit 0, 1000;
     `;
     const result = await mysql.connect(sql, param);
-    if (this.serviceUtil.isEmpty(result)) {
+    if (this.serviceUtil.isEmpty(result) || this.serviceUtil.isEmpty(result[0])) {
       throw new DBException();
     }
     return result[0][0].attendance === 1;
+  }
+
+  public async getLastId(): Promise<number> {
+    const sql = `
+    select 
+      max(id) as max
+    FROM
+      meeting
+    where 
+      status = 1
+    `;
+    const result = await mysql.connect(sql);
+    if (this.serviceUtil.isEmpty(result) || this.serviceUtil.isEmpty(result[0])) {
+      throw new DBException();
+    }
+    return result[0][0].max;
   }
 }

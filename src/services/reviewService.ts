@@ -146,4 +146,9 @@ export default class reviewService {
     }
     return result;
   }
+
+  public async getLastId(): Promise<number> {
+    const result = await this.reviewRepository.getLastId();
+    return result;
+  }
 }

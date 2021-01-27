@@ -13,7 +13,7 @@ export function errorHandler(err: Error): Error {
   } else if (err instanceof Error && err.name == 'Client') {
     return toApolloError(err, 'EXTERNAL_CLIENT_ERROR');
   } else {
-    console.error('internal server error:', err); // internal server error
+    // console.error('internal server error:', err); // internal server error
   }
   return err;
 }

@@ -10,23 +10,23 @@ const typeDefs = gql`
   }
   type Query {
     meetings(hostId: String, page: Page!): MeetingConnection!
-    meeting(id: Int!): Meeting!
+    meeting(id: ID!): Meeting!
 
-    reviews(meetingId: Int!, userId: String!, page: Page): ReviewConnection!
-    review(id: Int!): Review!
+    reviews(meetingId: Int, userId: String, page: Page): ReviewConnection!
+    review(id: ID!): Review!
   }
 
   type Mutation {
     createMeeting(input: MeetingPostParam): Meeting!
-    updateMeeting(id: Int!, input: MeetingPostParam): Meeting!
-    deleteMeeting(id: Int!): DeleteStatus!
+    updateMeeting(id: ID!, input: MeetingPostParam): Meeting!
+    deleteMeeting(id: ID!): DeleteStatus!
     createMeetingParticipation(meetingId: Int, userId: String): Participation!
     deleteMeetingParticipation(meetingId: Int, userId: String): DeleteStatus!
     updateAttendance(meetingId: Int!, userId: String!): Participation!
 
     createReview(input: ReviewPostParam): Review!
-    updateReview(id: Int!, input: ReviewPostParam): Review!
-    deleteReview(id: Int!): DeleteStatus!
+    updateReview(id: ID!, input: ReviewPostParam): Review!
+    deleteReview(id: ID!): DeleteStatus!
   }
 
   input MeetingPostParam {
@@ -57,7 +57,7 @@ const typeDefs = gql`
 
   type Meeting {
     " 모임 ID"
-    id: Int!
+    id: ID!
 
     " 모임 등록 호스트 정보 "
     host: Host!
@@ -95,7 +95,7 @@ const typeDefs = gql`
 
   type Review {
     " 리뷰 ID "
-    id: Int!
+    id: ID!
 
     " 작성자 "
     postedBy: User!
@@ -112,7 +112,7 @@ const typeDefs = gql`
 
   type User {
     " 유저 ID "
-    id: String!
+    id: ID!
 
     " 유저 닉네임 "
     nickname: String!
@@ -120,7 +120,7 @@ const typeDefs = gql`
 
   type Host {
     " 호스트 ID "
-    id: String!
+    id: ID!
 
     " 호스트 닉네임 "
     nickname: String!

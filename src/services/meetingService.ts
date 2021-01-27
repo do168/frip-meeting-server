@@ -234,4 +234,9 @@ export default class meetingService {
     }
     return true;
   }
+
+  public async getLastId(): Promise<number> {
+    const result = await this.meetingRepository.getLastId();
+    return result;
+  }
 }

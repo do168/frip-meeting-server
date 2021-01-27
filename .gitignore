@@ -4,3 +4,4 @@ node_modules
 .env.test
 .env
 .env.development
+coverage

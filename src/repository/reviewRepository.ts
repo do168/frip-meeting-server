@@ -309,4 +309,20 @@ export default class reviewRepository {
     }
     return result[0].affectedRows;
   }
+
+  public async getLastId(): Promise<number> {
+    const sql = `
+    select 
+      max(id) as max
+    FROM
+      review
+    where
+      status = 1
+    `;
+    const result = await mysql.connect(sql);
+    if (this.serviceUtil.isEmpty(result) || this.serviceUtil.isEmpty(result[0])) {
+      throw new DBException();
+    }
+    return result[0][0].max;
+  }
 }

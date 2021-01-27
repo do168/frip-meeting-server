@@ -60,10 +60,12 @@ const resolvers = {
     meetings: async (_: unknown, args: any): Promise<Connection<Meeting>> => {
       const hostId = args.hostId ? String(args.hostId) : '';
       const page = {
-        pageNum: PageValidate.INVALIDATE,
-        pageSize: PageValidate.INVALIDATE,
+        pageNum: args.page.pageNum || PageValidate.INVALIDATE,
+        pageSize: args.page.PageSize || PageValidate.INVALIDATE,
         first: args.page.first ? Number(args.page.first) + 1 : 1,
-        after: args.page.after ? Number(serviceUtilInstance.convertId(args.page.after)) : 10,
+        after: args.page.after
+          ? Number(serviceUtilInstance.convertId(args.page.after))
+          : await meetingServiceInstance.getLastId(),
       };
       const result = await meetingServiceInstance.listMeetings(hostId, page);
 
@@ -98,10 +100,12 @@ const resolvers = {
       const meetingId = args.meetingId ? Number(args.meetingId) : 0;
       const userId = args.userId ? String(args.userId) : '';
       const page = {
-        pageNum: PageValidate.INVALIDATE,
-        pageSize: PageValidate.INVALIDATE,
+        pageNum: args.page.pageNum || PageValidate.INVALIDATE,
+        pageSize: args.page.PageSize || PageValidate.INVALIDATE,
         first: args.page.first ? Number(args.page.first) + 1 : 1,
-        after: args.page.after ? Number(serviceUtilInstance.convertId(args.page.after)) : 10,
+        after: args.page.after
+          ? Number(serviceUtilInstance.convertId(args.page.after))
+          : await reviewServiceInstance.getLastId(),
       };
       const result = await reviewServiceInstance.listReviews(meetingId, userId, page);
 
@@ -134,8 +138,9 @@ const resolvers = {
       return result;
     },
 
-    updateMeeting: async (_: unknown, args: any, { input }: { input: MeetingPostParam }): Promise<Meeting> => {
-      const id = args.id ? Number(args.id) : 0;
+    updateMeeting: async (_: unknown, args: any): Promise<Meeting> => {
+      const id = Number(args.id);
+      await meetingServiceInstance.updateMeeting(id, args.input);
       const result = await meetingServiceInstance.getMeeting(id);
       return result;
     },
@@ -143,7 +148,7 @@ const resolvers = {
     deleteMeeting: async (_: unknown, args: any): Promise<DeleteStatus> => {
       const id = args.id ? Number(args.id) : 0;
       try {
-        meetingServiceInstance.deleteMeeting(id);
+        await meetingServiceInstance.deleteMeeting(id);
         return DeleteStatus.SUCCESS;
       } catch (error) {
         return DeleteStatus.FAIL;
@@ -188,9 +193,9 @@ const resolvers = {
       return result;
     },
 
-    updateReview: async (_: unknown, args: any, { input }: { input: ReviewPostParam }): Promise<Review> => {
+    updateReview: async (_: unknown, args: any): Promise<Review> => {
       const id = args.id ? Number(args.id) : 0;
-      await reviewServiceInstance.updateReview(id, input);
+      await reviewServiceInstance.updateReview(id, args.input);
       const result = await reviewServiceInstance.getReview(id);
       return result; // 리턴값을 어떻게 해야할까?
     },

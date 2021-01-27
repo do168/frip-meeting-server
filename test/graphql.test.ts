@@ -131,7 +131,7 @@ beforeAll(async () => {
   await createSchema();
 });
 
-test('create meeting with correct param', async (done) => {
+test('create meeting', async (done) => {
   const CREATE_MEETING = gql`
     mutation($input: MeetingPostParam) {
       createMeeting(input: $input) {
@@ -141,20 +141,23 @@ test('create meeting with correct param', async (done) => {
     }
   `;
   const normalSuccessResult = await mutate({ mutation: CREATE_MEETING, variables: { input: meetingPostParam } });
-  expect(normalSuccessResult.data.createMeeting).toEqual({ id: 2, title: '미팅생성테스트. Test에 올라가나요?' });
+  expect(normalSuccessResult.data.createMeeting).toEqual({ id: '2', title: '미팅생성테스트. Test에 올라가나요?' });
 
   const deadlinePastSuccessResult = await mutate({
     mutation: CREATE_MEETING,
     variables: { input: meetingPostParamWithDeadlinePast },
   });
-  expect(deadlinePastSuccessResult.data.createMeeting).toEqual({ id: 3, title: '미팅생성테스트. Test에 올라가나요?' });
+  expect(deadlinePastSuccessResult.data.createMeeting).toEqual({
+    id: '3',
+    title: '미팅생성테스트. Test에 올라가나요?',
+  });
 
   const specificCharcaterSuccessResult = await mutate({
     mutation: CREATE_MEETING,
     variables: { input: meetingPostParamWithSpecificCharacter },
   });
   expect(specificCharcaterSuccessResult.data.createMeeting).toEqual({
-    id: 4,
+    id: '4',
     title: "'따옴표' 포함된 생성테스트. Test에 올라가나요?",
   });
 
@@ -173,61 +176,300 @@ test('create meeting with correct param', async (done) => {
   done();
 });
 
-test('select meeting', async (done) => {
-  const SELECT_MEETING = gql`
-    {
-      meeting(id: 1) {
+test('update meeting', async (done) => {
+  const UPDATE_MEETING = gql`
+    mutation($id: ID!, $input: MeetingPostParam) {
+      updateMeeting(id: $id, input: $input) {
+        id
+      }
+    }
+  `;
+
+  const normalSuccessResult = await mutate({
+    mutation: UPDATE_MEETING,
+    variables: { id: '4', input: meetingPostParamUpdate },
+  });
+  expect(normalSuccessResult.data.updateMeeting).toEqual({ id: '4' });
+
+  const nullFailResult = await mutate({
+    mutation: UPDATE_MEETING,
+    variables: { id: '4', input: meetingPostParamWithNull },
+  });
+  expect(nullFailResult.errors).toHaveLength(1);
+
+  done();
+});
+
+test('get meeting', async (done) => {
+  const GET_MEETING = gql`
+    query GetMeeting($id: ID!) {
+      meeting(id: $id) {
         id
         title
       }
     }
   `;
 
-  const response = await query({ query: SELECT_MEETING });
-  expect(response.data.meeting).toEqual({ id: 1, title: '사전입력모임' });
+  const normalSuccessResult = await query({ query: GET_MEETING, variables: { id: 1 } });
+  expect(normalSuccessResult.data.meeting).toEqual({ id: '1', title: '사전입력모임' });
+
+  const diffTypeFailureResult = await query({ query: GET_MEETING, variables: { id: '이건머지' } });
+  expect(diffTypeFailureResult.errors).toHaveLength(1);
+
   done();
 });
 
-test('select meetings without hostId', async (done) => {
-  const SELECT_MEETINGS = gql`
-    {
-      meetings(page: { pageNum: 1, pageSize: 2 }) {
-        edges {
-          node {
-            title
-          }
-          cursor
-        }
-        pageInfo {
-          hasNextPage
-          endCursor
-        }
+test('get meetings', async (done) => {
+  const GET_MEETINGS = gql`
+    query GetMeetings($hostId: String, $page: Page!) {
+      meetings(hostId: $hostId, page: $page) {
         totalCount
       }
     }
   `;
 
-  const response = await query({ query: SELECT_MEETINGS });
-  expect(response.data.meetings).toEqual({
-    edges: [
-      {
-        cursor: 'MU1lZXRpbmc=',
-        node: {
-          title: '사전입력모임',
-        },
-      },
-      {
-        cursor: 'Mk1lZXRpbmc=',
-        node: {
-          title: '미팅생성테스트. Test에 올라가나요?',
-        },
-      },
-    ],
-    pageInfo: {
-      endCursor: 'Mk1lZXRpbmc=',
-      hasNextPage: true,
-    },
-    totalCount: 2,
+  const normalSuccessResult = await query({
+    query: GET_MEETINGS,
+    variables: { hostId: '', page: { first: 3 } },
   });
+  expect(normalSuccessResult.data.meetings.totalCount).toBe(3);
+
+  const normalWithHostIdSuccessResult = await query({
+    query: GET_MEETINGS,
+    variables: { hostId: 'HostFirst', page: { first: 2 } },
+  });
+  expect(normalWithHostIdSuccessResult.data.meetings.totalCount).toBe(2);
+
+  const nullPageTypeFailureResult = await query({
+    query: GET_MEETINGS,
+    variables: { hostId: 'HostFirst', page: {} },
+  });
+  expect(nullPageTypeFailureResult.errors).toHaveLength(1);
+
+  done();
+});
+
+test('delete meeting', async (done) => {
+  const DELETE_MEETING = gql`
+    mutation($id: ID!) {
+      deleteMeeting(id: $id)
+    }
+  `;
+
+  const normalSuccessResult = await mutate({
+    mutation: DELETE_MEETING,
+    variables: { id: 4 },
+  });
+  expect(normalSuccessResult.data.deleteMeeting).toBe('SUCCESS');
+
+  const notExistFailureResult = await mutate({
+    mutation: DELETE_MEETING,
+    variables: { id: 1000 },
+  });
+  expect(notExistFailureResult.data.deleteMeeting).toBe('FAIL');
+  done();
+});
+
+test('apply meeting', async (done) => {
+  const PARTICIPATE_MEETING = gql`
+    mutation($meetingId: Int!, $userId: String!) {
+      createMeetingParticipation(meetingId: $meetingId, userId: $userId) {
+        meeting {
+          id
+        }
+        user {
+          id
+        }
+      }
+    }
+  `;
+
+  const normalSuccessResult = await mutate({
+    mutation: PARTICIPATE_MEETING,
+    variables: { meetingId: 2, userId: 'UserSecond' },
+  });
+  expect(normalSuccessResult.data.createMeetingParticipation).toEqual({
+    meeting: { id: '2' },
+    user: { id: 'UserSecond' },
+  });
+
+  const normalSuccessResultSecond = await mutate({
+    mutation: PARTICIPATE_MEETING,
+    variables: { meetingId: 2, userId: 'UserFirst' },
+  });
+  expect(normalSuccessResultSecond.data.createMeetingParticipation).toEqual({
+    meeting: { id: '2' },
+    user: { id: 'UserFirst' },
+  });
+
+  const deadlinePastFailureResult = await mutate({
+    mutation: PARTICIPATE_MEETING,
+    variables: { meetingId: 3, userId: 'UserFirst' },
+  });
+  expect(deadlinePastFailureResult.errors).toHaveLength(1);
+
+  const meetingIdNullFailureResult = await mutate({
+    mutation: PARTICIPATE_MEETING,
+    variables: { meetingId: 0, userId: 'UserFirst' },
+  });
+  expect(meetingIdNullFailureResult.errors).toHaveLength(1);
+
+  const userIdNullFailureResult = await mutate({
+    mutation: PARTICIPATE_MEETING,
+    variables: { meetingId: 2, userId: '' },
+  });
+  expect(userIdNullFailureResult.errors).toHaveLength(1);
+
+  const participantMaxFailureResult = await mutate({
+    mutation: PARTICIPATE_MEETING,
+    variables: { meetingId: 2, userId: 'UserThird' },
+  });
+  expect(participantMaxFailureResult.errors).toHaveLength(1);
+
+  done();
+});
+
+test('cancel apply meeting', async (done) => {
+  const CANCEL_MEETING = gql`
+    mutation($meetingId: Int!, $userId: String!) {
+      deleteMeetingParticipation(meetingId: $meetingId, userId: $userId)
+    }
+  `;
+
+  const normalSuccessResult = await mutate({
+    mutation: CANCEL_MEETING,
+    variables: { meetingId: 2, userId: 'UserSecond' },
+  });
+  expect(normalSuccessResult.data.deleteMeetingParticipation).toBe('SUCCESS');
+
+  const deadlinePastFailureResult = await mutate({
+    mutation: CANCEL_MEETING,
+    variables: { meetingId: 1, userId: 'UserFirst' },
+  });
+  expect(deadlinePastFailureResult.data.deleteMeetingParticipation).toBe('FAIL');
+
+  done();
+});
+
+test('create review', async (done) => {
+  const CREATE_REVIEW = gql`
+    mutation($input: ReviewPostParam!) {
+      createReview(input: $input) {
+        id
+      }
+    }
+  `;
+
+  const normalSuccessResult = await mutate({
+    mutation: CREATE_REVIEW,
+    variables: { input: reviewPostParam },
+  });
+  expect(normalSuccessResult.data.createReview.id).toBe('1');
+
+  const specificCharacterSuccessResult = await mutate({
+    mutation: CREATE_REVIEW,
+    variables: { input: reviewPostParamWithSpecificCharacter },
+  });
+  expect(specificCharacterSuccessResult.data.createReview.id).toBe('2');
+
+  const reviewConditionFailureResult = await mutate({
+    mutation: CREATE_REVIEW,
+    variables: { input: reviewPostParamWithNoParticipant },
+  });
+  expect(reviewConditionFailureResult.errors).toHaveLength(1);
+
+  done();
+});
+
+test('get review', async (done) => {
+  const GET_REVIEW = gql`
+    query($id: ID!) {
+      review(id: $id) {
+        id
+      }
+    }
+  `;
+
+  const normalSuccessResult = await query({
+    query: GET_REVIEW,
+    variables: { id: 1 },
+  });
+  expect(normalSuccessResult.data.review.id).toBe('1');
+
+  const diffentTypeFailureResult = await query({
+    query: GET_REVIEW,
+    variables: { id: -1 },
+  });
+  expect(diffentTypeFailureResult.errors).toHaveLength(1);
+
+  done();
+});
+
+test('get reviews', async (done) => {
+  const GET_REVIEWS = gql`
+    query($meetingId: Int, $userId: String, $page: Page!) {
+      reviews(meetingId: $meetingId, userId: $userId, page: $page) {
+        totalCount
+      }
+    }
+  `;
+
+  const normalMeetingIdSuccessResult = await query({
+    query: GET_REVIEWS,
+    variables: { meetingId: 1, page: { first: 2 } },
+  });
+  expect(normalMeetingIdSuccessResult.data.reviews.totalCount).toBe(1);
+
+  const normalUserIdSuccessResult = await query({
+    query: GET_REVIEWS,
+    variables: { userId: 'UserFirst', page: { first: 2 } },
+  });
+  expect(normalUserIdSuccessResult.data.reviews.totalCount).toBe(1);
+
+  done();
+});
+
+test('update review', async (done) => {
+  const UPDATE_REVIEW = gql`
+    mutation($id: ID!, $input: ReviewPostParam!) {
+      updateReview(id: $id, input: $input) {
+        id
+      }
+    }
+  `;
+
+  const normalSuccessResult = await mutate({
+    mutation: UPDATE_REVIEW,
+    variables: { id: 1, input: reviewPostParamUpdate },
+  });
+  expect(normalSuccessResult.data.updateReview.id).toBe('1');
+
+  const nullFailResult = await mutate({
+    mutation: UPDATE_REVIEW,
+    variables: { id: 1, input: reviewPostParamWithNull },
+  });
+  expect(nullFailResult.errors).toHaveLength(1);
+
+  done();
+});
+
+test('delete review', async (done) => {
+  const DELETE_REVIEW = gql`
+    mutation($id: ID!) {
+      deleteReview(id: $id)
+    }
+  `;
+
+  const normalSuccessResult = await mutate({
+    mutation: DELETE_REVIEW,
+    variables: { id: 1 },
+  });
+  expect(normalSuccessResult.data.deleteReview).toBe('SUCCESS');
+
+  const notExistFailureResult = await mutate({
+    mutation: DELETE_REVIEW,
+    variables: { id: 1000 },
+  });
+  expect(notExistFailureResult.data.deleteReview).toBe('FAIL');
   done();
 });

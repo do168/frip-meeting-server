@@ -231,7 +231,7 @@ describe('Test get /meetings/undefined', () => {
 // 특정 모임 가져오기 테스트 - Type Exception - 타입이 다른 경우
 describe('Test get /meetings/differentType', () => {
   test('get meetingId meeting with incorrect params -> should return Bad Request', async (done) => {
-    const res = await request(express).get('/meetings/');
+    const res = await request(express).get('/meetings/differentType');
     expect(res.status).toBe(400);
     done();
   });
@@ -242,26 +242,7 @@ describe('Test get /meetings?hostId=&pageNum=1&pageSize=3', () => {
   test('get meeting list with correct params -> should return ok', async (done) => {
     const res = await request(express).get('/meetings?hostId=&pageNum=1&pageSize=3');
     expect(res.status).toBe(200);
-    // expect(res.body).toStrictEqual({
-    //   // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
-    //   result: [
-    //     {
-    //       id: 1,
-    //       title: '사전입력모임',
-    //       deadline: '2009-01-02 12:33:33',
-    //     },
-    //     {
-    //       id: 2,
-    //       title: '미팅생성테스트. Test에 올라가나요?',
-    //       deadline: '2022-01-19 12:33:33',
-    //     },
-    //     {
-    //       id: 3,
-    //       title: '미팅생성테스트. Test에 올라가나요?',
-    //       deadline: '2009-01-02 12:33:33',
-    //     },
-    //   ],
-    // });
+    expect(res.body.result).toHaveLength(3);
     done();
   });
 });
@@ -271,16 +252,7 @@ describe('Test get /meetings?hostId=&pageNum=2&pageSize=3', () => {
   test('get meeting list with correct params -> should return ok', async (done) => {
     const res = await request(express).get('/meetings?hostId=&pageNum=2&pageSize=3');
     expect(res.status).toBe(200);
-    // expect(res.body).toStrictEqual({
-    //   // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
-    //   result: [
-    //     {
-    //       id: 4,
-    //       title: "'따옴표' 포함된 생성테스트. Test에 올라가나요?",
-    //       deadline: '2021-01-19 12:33:33',
-    //     },
-    //   ],
-    // });
+    expect(res.body.result).toHaveLength(1);
     done();
   });
 });
@@ -290,10 +262,8 @@ describe('Test get /meetings?hostId=&pageNum=3&pageSize=3', () => {
   test('get meeting list with correct params -> should return ok', async (done) => {
     const res = await request(express).get('/meetings?hostId=&pageNum=3&pageSize=3');
     expect(res.status).toBe(200);
-    expect(res.body).toStrictEqual({
-      // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
-      result: [],
-    });
+    expect(res.body.result).toHaveLength(0);
+
     done();
   });
 });
@@ -303,21 +273,6 @@ describe('Test get /meetings?hostId=HostFirst&pageNum=1&pageSize=2', () => {
   test('get meeting list with correct params -> should return ok', async (done) => {
     const res = await request(express).get('/meetings?hostId=HostFirst&pageNum=1&pageSize=2');
     expect(res.status).toBe(200);
-    // expect(res.body).toStrictEqual({
-    //   // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
-    //   result: [
-    //     {
-    //       deadline: '2009-01-02 12:33:33',
-    //       id: 1,
-    //       title: '사전입력모임',
-    //     },
-    //     {
-    //       id: 2,
-    //       title: '미팅생성테스트. Test에 올라가나요?',
-    //       deadline: '2022-01-19 12:33:33',
-    //     },
-    //   ],
-    // });
     done();
   });
 });
@@ -328,7 +283,6 @@ describe('Test get /meetings?hostId=HostFirst&pageNum=&pageSize=2', () => {
     const res = await request(express).get('/meetings?hostId=HostFirst&pageNum=&pageSize=2');
     expect(res.status).toBe(400);
     expect(res.body).toStrictEqual({
-      // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
       message: 'pageNum cannot be null',
       type: 'External Client Error',
     });
@@ -342,7 +296,6 @@ describe('Test get /meetings?hostId=HostFirst&pageNum=1&pageSize=', () => {
     const res = await request(express).get('/meetings?hostId=HostFirst&pageNum=1&pageSize=');
     expect(res.status).toBe(400);
     expect(res.body).toStrictEqual({
-      // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
       message: 'pageSize cannot be null',
       type: 'External Client Error',
     });
@@ -391,7 +344,6 @@ describe('Test post /meetings/3/users', () => {
     const res = await request(express).post('/meetings/3/users').send({ userId: 'UserFirst' });
     expect(res.status).toBe(400);
     expect(res.body).toStrictEqual({
-      // toBe로 비교시 배열때문에 'Received: serializes to the same string'가 난다. 'https://github.com/glennsl/bs-jest/issues/53' 참고
       message: '마감 시간이 지났습니다',
       type: 'External Client Error',
     });
