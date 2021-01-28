@@ -12,7 +12,7 @@ const typeDefs = gql`
     meetings(hostId: String, page: Page!): MeetingConnection!
     meeting(id: ID!): Meeting!
 
-    reviews(meetingId: Int, userId: String, page: Page): ReviewConnection!
+    reviews(meetingId: Int, userId: String, page: Page!): ReviewConnection!
     review(id: ID!): Review!
   }
 
