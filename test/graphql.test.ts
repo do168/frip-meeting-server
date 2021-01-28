@@ -4,7 +4,6 @@ import resolvers from '../src/graphql/resolver';
 import typeDefs from '../src/graphql/typeDef';
 import { errorHandler } from '../src/graphql/errorHandler';
 import { createSchema } from './schemaUtils';
-import { DateFormatException } from '../src/util/customException';
 
 const server = new ApolloServer({
   typeDefs: typeDefs,
@@ -133,7 +132,7 @@ beforeAll(async () => {
 
 test('create meeting', async (done) => {
   const CREATE_MEETING = gql`
-    mutation($input: MeetingPostParam) {
+    mutation($input: MeetingPostParam!) {
       createMeeting(input: $input) {
         id
         title
@@ -178,7 +177,7 @@ test('create meeting', async (done) => {
 
 test('update meeting', async (done) => {
   const UPDATE_MEETING = gql`
-    mutation($id: ID!, $input: MeetingPostParam) {
+    mutation($id: ID!, $input: MeetingPostParam!) {
       updateMeeting(id: $id, input: $input) {
         id
       }

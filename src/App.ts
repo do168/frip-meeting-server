@@ -35,7 +35,7 @@ export class App {
   public async run(port: number): Promise<void> {
     this.middleware();
     this.server = this.buildServer();
-    this.server.applyMiddleware({ app: this.express, cors: false });
+    this.server.applyMiddleware({ app: this.express, cors: true });
     this.httpServer = this.express.listen(port);
     this.routes();
   }
