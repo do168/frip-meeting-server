@@ -20,8 +20,8 @@ const typeDefs = gql`
     createMeeting(input: MeetingPostParam!): Meeting!
     updateMeeting(id: ID!, input: MeetingPostParam!): Meeting!
     deleteMeeting(id: ID!): DeleteStatus!
-    createMeetingParticipation(meetingId: Int, userId: String): Participation!
-    deleteMeetingParticipation(meetingId: Int, userId: String): DeleteStatus!
+    createMeetingParticipation(meetingId: Int!, userId: String!): Participation!
+    deleteMeetingParticipation(meetingId: Int!, userId: String!): DeleteStatus!
     updateAttendance(meetingId: Int!, userId: String!): Participation!
 
     createReview(input: ReviewPostParam!): Review!
