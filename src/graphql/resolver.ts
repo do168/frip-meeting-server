@@ -20,6 +20,7 @@ import { Participation } from '../model/resource/Participation';
 import { GraphQLScalarType, Kind } from 'graphql';
 import { DeleteStatus } from '../model/enum/DeleteStatus';
 import { PageValidate } from '../model/enum/PageValidate';
+import { NotExistsException } from '../util/customException';
 
 const serviceUtilInstance = new ServiceUtil();
 const meetingRepositoryInstance = new meetingRepository(serviceUtilInstance);
@@ -218,8 +219,15 @@ const resolvers = {
     updateReview: async (_: unknown, args: any): Promise<Review> => {
       const id = args.id ? Number(args.id) : 0;
       await reviewServiceInstance.updateReview(id, args.input);
-      const result = await reviewServiceInstance.getReview(id);
-      return result;
+      const review: Review = {
+        id: id,
+        meetingId: args.meetingId,
+        userId: args.userId,
+        title: args.title,
+        content: args.content,
+        updatedAt: new Date(),
+      };
+      return review;
     },
 
     deleteReview: async (_: unknown, args: any): Promise<DeleteStatus> => {
@@ -234,6 +242,9 @@ const resolvers = {
     // 모든 미팅 조회 시를 생각해 dataloader을 이용한다.
     host: async (parent: Meeting): Promise<Host | undefined> => {
       const result = await hostLoader.load(parent.hostId);
+      if (result == undefined) {
+        throw new NotExistsException();
+      }
       return result;
     },
 
