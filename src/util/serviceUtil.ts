@@ -124,7 +124,7 @@ export default class ServiceUtil {
       pageSize: pageSizeParam || PageValidate.INVALIDATE,
       // hasNextPage를 위해 주어진 first 값보다 하나 더 많이 가져온다
       first: firstParam ? Number(firstParam) + 1 : 1,
-      after: afterParam ? Number(this.convertId(afterParam)) : lastId, // default값은 max id로 한다.
+      after: afterParam ? Number(this.convertId(afterParam)) : lastId + 1, // default값은 max id로 한다.
     };
     return page;
   }
