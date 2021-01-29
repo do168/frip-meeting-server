@@ -54,7 +54,12 @@ const meetingParticipatedUserLoader = new DataLoader(
 const hostLoader = new DataLoader(
   async (hostIds: readonly string[]) => {
     const result = await hostServiceInstance.getAllHost(hostIds.map((i) => i));
-    return hostIds.map((id) => result.find((c) => c.id === id));
+    const host = hostIds.map((id) => result.find((c) => c.id === id));
+    if (host == undefined) {
+      throw new NotExistsException();
+    } else {
+      return host;
+    }
   },
   { cache: false },
 );
@@ -240,11 +245,8 @@ const resolvers = {
 
   Meeting: {
     // 모든 미팅 조회 시를 생각해 dataloader을 이용한다.
-    host: async (parent: Meeting): Promise<Host | undefined> => {
+    host: async (parent: Meeting): Promise<Host> => {
       const result = await hostLoader.load(parent.hostId);
-      if (result == undefined) {
-        throw new NotExistsException();
-      }
       return result;
     },
 
