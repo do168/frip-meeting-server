@@ -320,6 +320,7 @@ const resolvers = {
     },
   },
 
+  // Date를 문자열로 표현 ( 표준시 추가)
   Date: new GraphQLScalarType({
     name: 'Date',
     description: 'Date custom scalar type',
