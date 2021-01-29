@@ -132,6 +132,18 @@ export class PagingException extends Error {
   }
 }
 
+export class DataloaderMatchingException extends Error {
+  status: number;
+  code: string;
+  constructor() {
+    super('Dataloader not matched');
+    this.name = 'Client';
+    this.stack = Error().stack;
+    this.status = 400;
+    this.code = 'EXTERNAL_CLIENT_ERROR';
+  }
+}
+
 export class DBException extends Error {
   status: number;
   constructor() {

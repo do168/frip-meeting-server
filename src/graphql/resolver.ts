@@ -20,7 +20,7 @@ import { Participation } from '../model/resource/Participation';
 import { GraphQLScalarType, Kind } from 'graphql';
 import { DeleteStatus } from '../model/enum/DeleteStatus';
 import { PageValidate } from '../model/enum/PageValidate';
-import { NotExistsException } from '../util/customException';
+import { DataloaderMatchingException, NotExistsException, NullException } from '../util/customException';
 
 const serviceUtilInstance = new ServiceUtil();
 const meetingRepositoryInstance = new meetingRepository(serviceUtilInstance);
@@ -54,12 +54,14 @@ const meetingParticipatedUserLoader = new DataLoader(
 const hostLoader = new DataLoader(
   async (hostIds: readonly string[]) => {
     const result = await hostServiceInstance.getAllHost(hostIds.map((i) => i));
-    const host = hostIds.map((id) => result.find((c) => c.id === id));
-    if (host == undefined) {
-      throw new NotExistsException();
-    } else {
-      return host;
-    }
+    const host = hostIds.map((id) => {
+      const findResult = result.find((c) => c.id === id);
+      if (serviceUtilInstance.isEmpty(findResult)) {
+        throw new DataloaderMatchingException();
+      }
+      return findResult;
+    });
+    return host;
   },
   { cache: false },
 );
@@ -245,7 +247,7 @@ const resolvers = {
 
   Meeting: {
     // 모든 미팅 조회 시를 생각해 dataloader을 이용한다.
-    host: async (parent: Meeting): Promise<Host> => {
+    host: async (parent: Meeting): Promise<Host | undefined> => {
       const result = await hostLoader.load(parent.hostId);
       return result;
     },
