@@ -1,3 +1,5 @@
+import { Page } from '../model/Connections/Page';
+import { PageValidate } from '../model/enum/PageValidate';
 import { CursorValueException, DateFormatException, NullException } from './customException';
 
 export default class ServiceUtil {
@@ -106,5 +108,24 @@ export default class ServiceUtil {
     }
 
     return id;
+  }
+
+  public makePageType(
+    pageNumParam: number,
+    pageSizeParam: number,
+    firstParam: number,
+    afterParam: string,
+    lastId: number,
+  ): Page {
+    const page = {
+      // graphql에서는 first+after 로 페이징을 한다. pageNum이나 pageSize에 어떤 입력값이 들어오면
+      // Repository 단에서 에러처리한다.
+      pageNum: pageNumParam || PageValidate.INVALIDATE,
+      pageSize: pageSizeParam || PageValidate.INVALIDATE,
+      // hasNextPage를 위해 주어진 first 값보다 하나 더 많이 가져온다
+      first: firstParam ? Number(firstParam) + 1 : 1,
+      after: afterParam ? Number(this.convertId(afterParam)) : lastId, // default값은 max id로 한다.
+    };
+    return page;
   }
 }

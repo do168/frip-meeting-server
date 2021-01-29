@@ -90,15 +90,15 @@ export default class reviewService {
    * @param pageNum 페이지 번호
    * @return Array<Review>
    */
-  public async listAllReviews(meetingId: readonly number[], userId: readonly string[]): Promise<Review[]> {
+  public async listAllReviews(meetingIds: readonly number[], userIds: readonly string[]): Promise<Review[]> {
     // user 필터 리뷰 리스트
-    if (this.serviceUtil.isEmpty(meetingId) && !this.serviceUtil.isEmpty(userId)) {
-      const result = await this.reviewRepository.listAllUserReviews(userId);
+    if (this.serviceUtil.isEmpty(meetingIds) && !this.serviceUtil.isEmpty(userIds)) {
+      const result = await this.reviewRepository.listAllUserReviews(userIds);
       return result;
     }
     // meeting 필터 리뷰 리스트
-    else if (!this.serviceUtil.isEmpty(meetingId) && this.serviceUtil.isEmpty(userId)) {
-      const result = await this.reviewRepository.listAllMeetingReviews(meetingId);
+    else if (!this.serviceUtil.isEmpty(meetingIds) && this.serviceUtil.isEmpty(userIds)) {
+      const result = await this.reviewRepository.listAllMeetingReviews(meetingIds);
       return result;
     }
     // 전체 리뷰 리스트

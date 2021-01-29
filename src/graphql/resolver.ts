@@ -32,22 +32,31 @@ const hostServiceInstance = new hostService(hostRepositoryInstance, serviceUtilI
 const userServiceInstance = new userService(userRepositoryInstance, serviceUtilInstance);
 
 // 모임에 작성된 리뷰 리스트 dataloader
-const meetingConnectedReviewLoader = new DataLoader(async (meetingIds: readonly number[]) => {
-  const result = await reviewServiceInstance.listAllReviews(meetingIds, []);
-  return meetingIds.map((id) => result.filter((c) => c.meetingId === id));
-});
+const meetingConnectedReviewLoader = new DataLoader(
+  async (meetingIds: readonly number[]) => {
+    const result = await reviewServiceInstance.listAllReviews(meetingIds, []);
+    return meetingIds.map((id) => result.filter((c) => c.meetingId === id));
+  },
+  { cache: false },
+);
 
 // 모임에 참여한 유저 리스트 dataloader
-const meetingParticipatedUserLoader = new DataLoader(async (meetingIds: readonly number[]) => {
-  const result = await userServiceInstance.listAllUsers(meetingIds);
-  return meetingIds.map((id) => result.filter((c) => c.meetingId === id));
-});
+const meetingParticipatedUserLoader = new DataLoader(
+  async (meetingIds: readonly number[]) => {
+    const result = await userServiceInstance.listAllUsers(meetingIds);
+    return meetingIds.map((id) => result.filter((c) => c.meetingId === id));
+  },
+  { cache: false },
+);
 
 // 호스트 dataloader
-const hostLoader = new DataLoader(async (hostIds: readonly string[]) => {
-  const result = await hostServiceInstance.getAllHost(hostIds.map((i) => i));
-  return hostIds.map((id) => result.filter((c) => c.id === id))[0];
-});
+const hostLoader = new DataLoader(
+  async (hostIds: readonly string[]) => {
+    const result = await hostServiceInstance.getAllHost(hostIds.map((i) => i));
+    return hostIds.map((id) => result.find((c) => c.id === id));
+  },
+  { cache: false },
+);
 
 const resolvers = {
   Query: {
@@ -59,17 +68,13 @@ const resolvers = {
 
     meetings: async (_: unknown, args: any): Promise<Connection<Meeting>> => {
       const hostId = args.hostId ? String(args.hostId) : '';
-      const page = {
-        // graphql에서는 first+after 로 페이징을 한다. pageNum이나 pageSize에 어떤 입력값이 들어오면
-        // Repository 단에서 에러처리한다.
-        pageNum: args.page.pageNum || PageValidate.INVALIDATE,
-        pageSize: args.page.PageSize || PageValidate.INVALIDATE,
-        // hasNextPage를 위해 주어진 first 값보다 하나 더 많이 가져온다
-        first: args.page.first ? Number(args.page.first) + 1 : 1,
-        after: args.page.after
-          ? Number(serviceUtilInstance.convertId(args.page.after))
-          : await meetingServiceInstance.getLastId(), // default값은 max id로 한다.
-      };
+      const page = serviceUtilInstance.makePageType(
+        args.page.pageNum,
+        args.page.pageSize,
+        args.page.first,
+        args.page.after,
+        await meetingServiceInstance.getLastId(),
+      );
       const result = await meetingServiceInstance.listMeetings(hostId, page);
 
       // 결과 길이가 orginFirst + 1 과 같다면 originFirst로, 아니라면 그거보다 작은 result 자체를 totalCount로 한다.
@@ -107,14 +112,13 @@ const resolvers = {
     reviews: async (_: unknown, args: any): Promise<Connection<Review>> => {
       const meetingId = args.meetingId ? Number(args.meetingId) : 0;
       const userId = args.userId ? String(args.userId) : '';
-      const page = {
-        pageNum: args.page.pageNum || PageValidate.INVALIDATE,
-        pageSize: args.page.PageSize || PageValidate.INVALIDATE,
-        first: args.page.first ? Number(args.page.first) + 1 : 1,
-        after: args.page.after
-          ? Number(serviceUtilInstance.convertId(args.page.after))
-          : await reviewServiceInstance.getLastId(),
-      };
+      const page = serviceUtilInstance.makePageType(
+        args.page.pageNum,
+        args.page.pageSize,
+        args.page.first,
+        args.page.after,
+        await reviewServiceInstance.getLastId(),
+      );
       const result = await reviewServiceInstance.listReviews(meetingId, userId, page);
 
       const totalcount = result.length == page.first ? page.first - 1 : result.length;
@@ -155,13 +159,9 @@ const resolvers = {
 
     deleteMeeting: async (_: unknown, args: any): Promise<DeleteStatus> => {
       const id = args.id ? Number(args.id) : 0;
-      // 삭제 성공시 SUCCESS 실패시 FAIL을 반환한다
-      try {
-        await meetingServiceInstance.deleteMeeting(id);
-        return DeleteStatus.SUCCESS;
-      } catch (error) {
-        return DeleteStatus.FAIL;
-      }
+      // 삭제 성공시 SUCCESS을 반환한다.
+      await meetingServiceInstance.deleteMeeting(id);
+      return DeleteStatus.SUCCESS;
     },
 
     createMeetingParticipation: async (_: unknown, args: any): Promise<Participation> => {
@@ -177,12 +177,8 @@ const resolvers = {
     deleteMeetingParticipation: async (_: unknown, args: any): Promise<DeleteStatus> => {
       const meetingId = args.meetingId ? Number(args.meetingId) : 0;
       const userId = args.userId ? String(args.userId) : '';
-      try {
-        await meetingServiceInstance.deleteMeetingParticipation(meetingId, userId);
-        return DeleteStatus.SUCCESS;
-      } catch (error) {
-        return DeleteStatus.FAIL;
-      }
+      await meetingServiceInstance.deleteMeetingParticipation(meetingId, userId);
+      return DeleteStatus.SUCCESS;
     },
 
     updateAttendance: async (_: unknown, args: any): Promise<Participation> => {
@@ -206,18 +202,14 @@ const resolvers = {
       const id = args.id ? Number(args.id) : 0;
       await reviewServiceInstance.updateReview(id, args.input);
       const result = await reviewServiceInstance.getReview(id);
-      return result; // 리턴값을 어떻게 해야할까?
+      return result;
     },
 
     deleteReview: async (_: unknown, args: any): Promise<DeleteStatus> => {
       const id = args.id ? Number(args.id) : 0;
       // 삭제 성공시 SUCCESS 실패시 FAIL을 반환한다
-      try {
-        await reviewServiceInstance.deleteReview(id);
-        return DeleteStatus.SUCCESS;
-      } catch (error) {
-        return DeleteStatus.FAIL;
-      }
+      await reviewServiceInstance.deleteReview(id);
+      return DeleteStatus.SUCCESS;
     },
   },
 
@@ -227,7 +219,7 @@ const resolvers = {
     },
 
     // 모든 미팅 조회 시를 생각해 dataloader을 이용한다.
-    host: async (parent: Meeting): Promise<Host> => {
+    host: async (parent: Meeting): Promise<Host | undefined> => {
       const result = await hostLoader.load(parent.hostId);
       return result;
     },

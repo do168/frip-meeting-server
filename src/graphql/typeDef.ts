@@ -4,9 +4,6 @@ const typeDefs = gql`
   enum DeleteStatus {
     " 삭제 성공 "
     SUCCESS
-
-    " 삭제 실패 "
-    FAIL
   }
   type Query {
     meetings(hostId: String, page: Page!): MeetingConnection!

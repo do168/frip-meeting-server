@@ -233,7 +233,7 @@ export default class reviewRepository {
     }
   }
 
-  public async listAllMeetingReviews(meetingId: readonly number[]): Promise<Review[]> {
+  public async listAllMeetingReviews(meetingIds: readonly number[]): Promise<Review[]> {
     const sql = `
     SELECT
       id,
@@ -243,7 +243,7 @@ export default class reviewRepository {
     FROM
       review
     WHERE
-      meetingId In (${meetingId}) and status = 1
+      meetingId In (${meetingIds}) and status = 1
     ORDER BY updatedAt DESC
     LIMIT 100
     `;
@@ -254,7 +254,7 @@ export default class reviewRepository {
     return result[0] as Review[];
   }
 
-  public async listAllUserReviews(userId: readonly string[]): Promise<Review[]> {
+  public async listAllUserReviews(userIdㄴ: readonly string[]): Promise<Review[]> {
     const sql = `
     SELECT
       id,
@@ -265,7 +265,7 @@ export default class reviewRepository {
     FROM
       review
     WHERE
-      uesrId In (${userId}) and status = 1
+      uesrId In (${userIdㄴ}) and status = 1
     LIMIT 100
     `;
     const [result] = await mysql.connect(sql);
