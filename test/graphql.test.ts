@@ -265,7 +265,7 @@ test('delete meeting', async (done) => {
     mutation: DELETE_MEETING,
     variables: { id: 1000 },
   });
-  expect(notExistFailureResult.data.deleteMeeting).toBe('FAIL');
+  expect(notExistFailureResult.errors).toHaveLength(1);
   done();
 });
 
@@ -345,7 +345,7 @@ test('cancel apply meeting', async (done) => {
     mutation: CANCEL_MEETING,
     variables: { meetingId: 1, userId: 'UserFirst' },
   });
-  expect(deadlinePastFailureResult.data.deleteMeetingParticipation).toBe('FAIL');
+  expect(deadlinePastFailureResult.errors).toHaveLength(1);
 
   done();
 });
@@ -417,13 +417,13 @@ test('get reviews', async (done) => {
     query: GET_REVIEWS,
     variables: { meetingId: 1, page: { first: 2 } },
   });
-  expect(normalMeetingIdSuccessResult.data.reviews.totalCount).toBe(1);
+  expect(normalMeetingIdSuccessResult.data.reviews.totalCount).toBe(2);
 
   const normalUserIdSuccessResult = await query({
     query: GET_REVIEWS,
     variables: { userId: 'UserFirst', page: { first: 2 } },
   });
-  expect(normalUserIdSuccessResult.data.reviews.totalCount).toBe(1);
+  expect(normalUserIdSuccessResult.data.reviews.totalCount).toBe(2);
 
   done();
 });
@@ -469,6 +469,6 @@ test('delete review', async (done) => {
     mutation: DELETE_REVIEW,
     variables: { id: 1000 },
   });
-  expect(notExistFailureResult.data.deleteReview).toBe('FAIL');
+  expect(notExistFailureResult.errors).toHaveLength(1);
   done();
 });

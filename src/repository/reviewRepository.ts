@@ -112,6 +112,32 @@ export default class reviewRepository {
         throw new DBException();
       }
       return result[0];
+    } else if (
+      page.first != PageValidate.INVALIDATE &&
+      page.after == PageValidate.INVALIDATE &&
+      page.pageNum == PageValidate.INVALIDATE &&
+      page.pageSize == PageValidate.INVALIDATE
+    ) {
+      const param = [meetingId, Number(page.first)];
+      const sql = `
+    SELECT
+      id,
+      userId,
+      title,
+      content,
+      updatedAt
+    FROM
+      review
+    WHERE
+      meetingId = ? and status = 1
+    ORDER BY id DESC 
+    LIMIT ?
+    `;
+      const result = await mysql.connect(sql, param);
+      if (this.serviceUtil.isEmpty(result)) {
+        throw new DBException();
+      }
+      return result[0];
     } else {
       throw new PagingException();
     }
@@ -170,6 +196,32 @@ export default class reviewRepository {
         throw new DBException();
       }
       return result[0];
+    } else if (
+      page.first != PageValidate.INVALIDATE &&
+      page.after == PageValidate.INVALIDATE &&
+      page.pageNum == PageValidate.INVALIDATE &&
+      page.pageSize == PageValidate.INVALIDATE
+    ) {
+      const param = [userId, Number(page.first)];
+      const sql = `
+    select
+      id,
+      userId,
+      title,
+      content,
+      updatedAt
+    FROM
+      review
+    WHERE
+      userId = ? and status = 1
+    ORDER BY id DESC
+    LIMIT ?
+    `;
+      const result = await mysql.connect(sql, param);
+      if (this.serviceUtil.isEmpty(result)) {
+        throw new DBException();
+      }
+      return result[0];
     } else {
       throw new PagingException();
     }
@@ -220,6 +272,32 @@ export default class reviewRepository {
       review
     WHERE
       id < ? and status = 1
+    ORDER BY id DESC
+    LIMIT ?
+    `;
+      const result = await mysql.connect(sql, param);
+      if (this.serviceUtil.isEmpty(result)) {
+        throw new DBException();
+      }
+      return result[0];
+    } else if (
+      page.first != PageValidate.INVALIDATE &&
+      page.after == PageValidate.INVALIDATE &&
+      page.pageNum == PageValidate.INVALIDATE &&
+      page.pageSize == PageValidate.INVALIDATE
+    ) {
+      const param = [Number(page.first)];
+      const sql = `
+    select
+      id,
+      userId,
+      title,
+      content,
+      updatedAt
+    FROM
+      review
+    WHERE
+      status = 1
     ORDER BY id DESC
     LIMIT ?
     `;

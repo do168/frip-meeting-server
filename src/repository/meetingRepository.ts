@@ -147,6 +147,34 @@ export default class meetingRepository {
     `;
       const result = await mysql.connect(sql, param);
       return result[0];
+    } else if (
+      page.first != PageValidate.INVALIDATE &&
+      page.after == PageValidate.INVALIDATE &&
+      page.pageNum == PageValidate.INVALIDATE &&
+      page.pageSize == PageValidate.INVALIDATE
+    ) {
+      const param = [hostId, Number(page.first)];
+      const sql = `
+    SELECT
+      id, 
+      hostId,
+      title, 
+      content,
+      startAt,
+      endAt,
+      deadline,
+      maxParticipant,
+      place,
+      updatedAt
+    FROM
+      meeting
+    WHERE
+      hostId = ? and status = 1
+    ORDER BY id DESC
+    LIMIT ?
+    `;
+      const result = await mysql.connect(sql, param);
+      return result[0];
     } else {
       throw new PagingException();
     }
@@ -208,6 +236,37 @@ export default class meetingRepository {
       meeting  
     WHERE
       id < ? and status = 1
+    ORDER BY id DESC  
+    LIMIT ?
+    `;
+      const result = await mysql.connect(sql, param);
+      if (this.serviceUtil.isEmpty(result)) {
+        throw new DBException();
+      }
+      return result[0];
+    } else if (
+      page.first != PageValidate.INVALIDATE &&
+      page.after == PageValidate.INVALIDATE &&
+      page.pageNum == PageValidate.INVALIDATE &&
+      page.pageSize == PageValidate.INVALIDATE
+    ) {
+      const param = [Number(page.first)];
+      const sql = `
+    SELECT
+      id, 
+      hostId,
+      title, 
+      content,
+      startAt,
+      endAt,
+      deadline,
+      maxParticipant,
+      place,
+      updatedAt
+    FROM
+      meeting  
+    WHERE
+      status = 1
     ORDER BY id DESC  
     LIMIT ?
     `;

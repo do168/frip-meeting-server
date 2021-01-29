@@ -73,7 +73,6 @@ const resolvers = {
         args.page.pageSize,
         args.page.first,
         args.page.after,
-        await meetingServiceInstance.getLastId(),
       );
       const result = await meetingServiceInstance.listMeetings(hostId, page);
 
@@ -117,7 +116,6 @@ const resolvers = {
         args.page.pageSize,
         args.page.first,
         args.page.after,
-        await reviewServiceInstance.getLastId(),
       );
       const result = await reviewServiceInstance.listReviews(meetingId, userId, page);
 
@@ -146,8 +144,20 @@ const resolvers = {
   Mutation: {
     createMeeting: async (_: unknown, { input }: { input: MeetingPostParam }): Promise<Meeting> => {
       const id = await meetingServiceInstance.createMeeting(input);
-      const result = await meetingServiceInstance.getMeeting(id);
-      return result;
+      const meeting: Meeting = {
+        id: id,
+        hostId: input.hostId,
+        title: input.title,
+        content: input.title,
+        startAt: new Date(input.startAt),
+        endAt: new Date(input.endAt),
+        deadline: new Date(input.deadline),
+        maxParticipant: input.maxParticipant,
+        place: input.place,
+        cntCurrentParticipant: 0,
+        updatedAt: new Date(),
+      };
+      return meeting;
     },
 
     updateMeeting: async (_: unknown, args: any): Promise<Meeting> => {
@@ -194,8 +204,15 @@ const resolvers = {
     createReview: async (_: unknown, { input }: { input: ReviewPostParam }): Promise<Review> => {
       const condition = await meetingServiceInstance.checkReviewCondition(input);
       const id = await reviewServiceInstance.createReview(condition, input);
-      const result = await reviewServiceInstance.getReview(id);
-      return result;
+      const review: Review = {
+        id: id,
+        meetingId: input.meetingId,
+        userId: input.userId,
+        title: input.title,
+        content: input.content,
+        updatedAt: new Date(),
+      };
+      return review;
     },
 
     updateReview: async (_: unknown, args: any): Promise<Review> => {
@@ -214,46 +231,10 @@ const resolvers = {
   },
 
   Meeting: {
-    id: (parent: Meeting): number => {
-      return parent.id || 0;
-    },
-
     // 모든 미팅 조회 시를 생각해 dataloader을 이용한다.
     host: async (parent: Meeting): Promise<Host | undefined> => {
       const result = await hostLoader.load(parent.hostId);
       return result;
-    },
-
-    title: (parent: Meeting): string => {
-      return parent.title;
-    },
-
-    content: (parent: Meeting): string => {
-      return parent.content;
-    },
-
-    startAt: (parent: Meeting): Date => {
-      return parent.startAt;
-    },
-
-    endAt: (parent: Meeting): Date => {
-      return parent.endAt;
-    },
-
-    deadline: (parent: Meeting): Date => {
-      return parent.deadline;
-    },
-
-    maxParticipant: (parent: Meeting): number => {
-      return parent.maxParticipant;
-    },
-
-    place: (parent: Meeting): string => {
-      return parent.place;
-    },
-
-    updatedAt: (parent: Meeting): Date => {
-      return parent.updatedAt;
     },
 
     // 모든 미팅, 각 미팅의 참가자 조회 시를 생각해 dataloader 사용
@@ -270,45 +251,9 @@ const resolvers = {
   },
 
   Review: {
-    id: (parent: Review): number => {
-      return parent.id || 0;
-    },
-
-    title: (parent: Review): string => {
-      return parent.title;
-    },
-
-    content: (parent: Review): string => {
-      return parent.content;
-    },
-
-    updatedAt: (parent: Review): Date => {
-      return parent.updatedAt;
-    },
-
     postedBy: async (parent: Review): Promise<User> => {
       const result = await userServiceInstance.getUser(parent.userId);
       return result;
-    },
-  },
-
-  User: {
-    id: (parent: User): string => {
-      return parent.id;
-    },
-
-    nickname: (parent: User): string => {
-      return parent.nickname;
-    },
-  },
-
-  Host: {
-    id: (parent: Host): string => {
-      return parent.id;
-    },
-
-    nickname: (parent: Host): string => {
-      return parent.nickname;
     },
   },
 

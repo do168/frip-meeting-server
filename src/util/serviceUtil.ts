@@ -110,13 +110,7 @@ export default class ServiceUtil {
     return id;
   }
 
-  public makePageType(
-    pageNumParam: number,
-    pageSizeParam: number,
-    firstParam: number,
-    afterParam: string,
-    lastId: number,
-  ): Page {
+  public makePageType(pageNumParam: number, pageSizeParam: number, firstParam: number, afterParam: string): Page {
     const page = {
       // graphql에서는 first+after 로 페이징을 한다. pageNum이나 pageSize에 어떤 입력값이 들어오면
       // Repository 단에서 에러처리한다.
@@ -124,7 +118,7 @@ export default class ServiceUtil {
       pageSize: pageSizeParam || PageValidate.INVALIDATE,
       // hasNextPage를 위해 주어진 first 값보다 하나 더 많이 가져온다
       first: firstParam ? Number(firstParam) + 1 : 1,
-      after: afterParam ? Number(this.convertId(afterParam)) : lastId + 1, // default값은 max id로 한다.
+      after: afterParam ? Number(this.convertId(afterParam)) : PageValidate.INVALIDATE, // default값은 max id로 한다.
     };
     return page;
   }
