@@ -137,7 +137,7 @@ export default class ServiceUtil {
     const edges = nodes.map((node) => {
       return {
         node: node,
-        // meetingId와 'Meeting" 타입을 base64 인코딩
+        // Id와 타입을 base64 인코딩
         cursor: this.convertCursor(node.id, type),
       };
     });
