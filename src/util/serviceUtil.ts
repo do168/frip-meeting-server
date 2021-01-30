@@ -1,5 +1,8 @@
+import { Connection } from '../model/Connections/Connection';
 import { Page } from '../model/Connections/Page';
 import { PageValidate } from '../model/enum/PageValidate';
+import { Meeting } from '../model/resource/Meeting';
+import { Review } from '../model/resource/Review';
 import { CursorValueException, DateFormatException, NullException } from './customException';
 
 export default class ServiceUtil {
@@ -121,5 +124,32 @@ export default class ServiceUtil {
       after: afterParam ? Number(this.convertId(afterParam)) : PageValidate.INVALIDATE, // default값은 max id로 한다.
     };
     return page;
+  }
+
+  public makeConnection(result: (Meeting | Review)[], page: Page, type: string): Connection<any> {
+    // 결과 길이가 orginFirst + 1 과 같다면 originFirst로, 아니라면 그거보다 작은 result 자체를 totalCount로 한다.
+    const totalcount = result.length == page.first ? page.first - 1 : result.length;
+    // 길이로 다음 페이지가 존재한느지 검사
+    const hasNextPage = result.length == page.first;
+    // 하나 더 많이 가져왔기에 마지막 하나는 자른다
+    const nodes = hasNextPage ? result.slice(0, -1) : result;
+
+    const edges = nodes.map((node) => {
+      return {
+        node: node,
+        // meetingId와 'Meeting" 타입을 base64 인코딩
+        cursor: this.convertCursor(node.id, type),
+      };
+    });
+
+    return {
+      totalCount: totalcount,
+      pageInfo: {
+        hasNextPage: hasNextPage,
+        // 마지막에 위치하는 값을 endCursor로 한다.
+        endCursor: this.convertCursor(nodes[nodes.length - 1].id, type),
+      },
+      edges: edges || [],
+    };
   }
 }

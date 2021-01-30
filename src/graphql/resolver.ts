@@ -84,30 +84,7 @@ const resolvers = {
       );
       const result = await meetingServiceInstance.listMeetings(hostId, page);
 
-      // 결과 길이가 orginFirst + 1 과 같다면 originFirst로, 아니라면 그거보다 작은 result 자체를 totalCount로 한다.
-      const totalcount = result.length == page.first ? page.first - 1 : result.length;
-      // 길이로 다음 페이지가 존재한느지 검사
-      const hasNextPage = result.length == page.first;
-      // 하나 더 많이 가져왔기에 마지막 하나는 자른다
-      const nodes = hasNextPage ? result.slice(0, -1) : result;
-
-      const edges = nodes.map((node) => {
-        return {
-          node: node,
-          // meetingId와 'Meeting" 타입을 base64 인코딩
-          cursor: serviceUtilInstance.convertCursor(node.id, 'Meeting'),
-        };
-      });
-
-      return {
-        totalCount: totalcount,
-        pageInfo: {
-          hasNextPage: hasNextPage,
-          // 마지막에 위치하는 값을 endCursor로 한다.
-          endCursor: serviceUtilInstance.convertCursor(nodes[nodes.length - 1].id, 'Meeting'),
-        },
-        edges: edges || [],
-      };
+      return serviceUtilInstance.makeConnection(result, page, 'Meeting');
     },
 
     review: async (_: unknown, args: any): Promise<Review> => {
@@ -127,25 +104,7 @@ const resolvers = {
       );
       const result = await reviewServiceInstance.listReviews(meetingId, userId, page);
 
-      const totalcount = result.length == page.first ? page.first - 1 : result.length;
-      const hasNextPage = result.length == page.first;
-      const nodes = hasNextPage ? result.slice(0, -1) : result;
-
-      const edges = nodes.map((node) => {
-        return {
-          node: node,
-          cursor: serviceUtilInstance.convertCursor(node.id, 'Review'),
-        };
-      });
-
-      return {
-        totalCount: totalcount,
-        pageInfo: {
-          hasNextPage: hasNextPage,
-          endCursor: serviceUtilInstance.convertCursor(nodes[nodes.length - 1].id, 'Review'),
-        },
-        edges: edges || [],
-      };
+      return serviceUtilInstance.makeConnection(result, page, 'Review');
     },
   },
 
@@ -272,18 +231,19 @@ const resolvers = {
     },
   },
 
-  // Date를 문자열로 표현 ( 표준시 추가)
-  Date: new GraphQLScalarType({
-    name: 'Date',
+  // Date를 문자열로 표현
+  DateString: new GraphQLScalarType({
+    name: 'DateString',
     description: 'Date custom scalar type',
     parseValue(value) {
       return new Date(value);
     },
+    // dateToStr : date -> "YYYY-MM-DD HH:MM:SS"
     serialize(value) {
       if (typeof value === 'string') {
-        return new Date(value).toString();
+        return serviceUtilInstance.dateToStr(new Date(value));
       }
-      return value.toString();
+      return serviceUtilInstance.dateToStr(value);
     },
     parseLiteral(ast) {
       if (ast.kind === Kind.INT) {
