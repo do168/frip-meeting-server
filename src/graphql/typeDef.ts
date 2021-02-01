@@ -66,13 +66,13 @@ const typeDefs = gql`
     content: String!
 
     " 모임 시작 시간 "
-    startAt: DateString!
+    startAt: DateTime!
 
     " 모임 종료 시간 "
-    endAt: DateString!
+    endAt: DateTime!
 
     " 모임 마감 시간 "
-    deadline: DateString!
+    deadline: DateTime!
 
     " 모임 참가 최대 인원 "
     maxParticipant: Int!
@@ -81,7 +81,10 @@ const typeDefs = gql`
     place: String!
 
     " 모임 등록글 업데이트 시간 "
-    updatedAt: DateString!
+    updatedAt: DateTime!
+
+    " 현재 참가 유저 수"
+    cntCurrentParticipant: Int
 
     " 현재 참가 유저"
     participatesUsers: [User!]!
@@ -104,7 +107,7 @@ const typeDefs = gql`
     content: String!
 
     " 등록 또는 수정 시간 "
-    updatedAt: DateString!
+    updatedAt: DateTime!
   }
 
   type User {
@@ -158,7 +161,7 @@ const typeDefs = gql`
     node: Review!
   }
 
-  scalar DateString
+  scalar DateTime
 `;
 
 export default typeDefs;

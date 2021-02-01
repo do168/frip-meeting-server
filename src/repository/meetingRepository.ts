@@ -137,7 +137,12 @@ export default class meetingRepository {
       deadline,
       maxParticipant,
       place,
-      updatedAt
+      updatedAt,
+      (SELECT 
+        count(*)
+      FROM
+        participatesMeeting
+      WHERE meetingId = meeting.id) as cntCurrentParticipant
     FROM
       meeting
     WHERE
@@ -165,7 +170,12 @@ export default class meetingRepository {
       deadline,
       maxParticipant,
       place,
-      updatedAt
+      updatedAt,
+      (SELECT 
+        count(*)
+      FROM
+        participatesMeeting
+      WHERE meetingId = meeting.id) as cntCurrentParticipant
     FROM
       meeting
     WHERE
@@ -231,7 +241,12 @@ export default class meetingRepository {
       deadline,
       maxParticipant,
       place,
-      updatedAt
+      updatedAt,
+      (SELECT 
+        count(*)
+      FROM
+        participatesMeeting
+      WHERE meetingId = meeting.id) as cntCurrentParticipant
     FROM
       meeting  
     WHERE
@@ -262,7 +277,12 @@ export default class meetingRepository {
       deadline,
       maxParticipant,
       place,
-      updatedAt
+      updatedAt,
+      (SELECT 
+        count(*)
+      FROM
+        participatesMeeting
+      WHERE meetingId = meeting.id) as cntCurrentParticipant
     FROM
       meeting  
     WHERE

@@ -54,14 +54,14 @@ const meetingParticipatedUserLoader = new DataLoader(
 const hostLoader = new DataLoader(
   async (hostIds: readonly string[]) => {
     const result = await hostServiceInstance.getAllHost(hostIds.map((i) => i));
-    const host = hostIds.map((id) => {
+    const hosts = hostIds.map((id) => {
       const findResult = result.find((c) => c.id === id);
       if (serviceUtilInstance.isEmpty(findResult)) {
         throw new DataloaderMatchingException();
       }
       return findResult;
     });
-    return host;
+    return hosts;
   },
   { cache: false },
 );
@@ -232,8 +232,8 @@ const resolvers = {
   },
 
   // Date를 문자열로 표현
-  DateString: new GraphQLScalarType({
-    name: 'DateString',
+  DateTime: new GraphQLScalarType({
+    name: 'DateTime',
     description: 'Date custom scalar type',
     parseValue(value) {
       return new Date(value);
@@ -241,9 +241,9 @@ const resolvers = {
     // dateToStr : date -> "YYYY-MM-DD HH:MM:SS"
     serialize(value) {
       if (typeof value === 'string') {
-        return serviceUtilInstance.dateToStr(new Date(value));
+        return new Date(value).toISOString();
       }
-      return serviceUtilInstance.dateToStr(value);
+      return value.toISOString();
     },
     parseLiteral(ast) {
       if (ast.kind === Kind.INT) {
