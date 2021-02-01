@@ -238,7 +238,7 @@ const resolvers = {
     parseValue(value) {
       return new Date(value);
     },
-    // dateToStr : date -> "YYYY-MM-DD HH:MM:SS"
+    // toISOString() -> "YYYY-MM-DDTHH:mm:ss.sssZ"
     serialize(value) {
       if (typeof value === 'string') {
         return new Date(value).toISOString();
