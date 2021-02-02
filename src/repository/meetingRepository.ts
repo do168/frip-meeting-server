@@ -76,7 +76,7 @@ export default class meetingRepository {
         count(*)
       FROM
         participatesMeeting
-      WHERE meetingId = ?) as cntCurrentParticipant   
+      WHERE meetingId = ? and status = 1) as cntCurrentParticipant   
     FROM
       meeting
     WHERE
@@ -142,7 +142,7 @@ export default class meetingRepository {
         count(*)
       FROM
         participatesMeeting
-      WHERE meetingId = meeting.id) as cntCurrentParticipant
+      WHERE meetingId = meeting.id and status = 1) as cntCurrentParticipant
     FROM
       meeting
     WHERE
@@ -175,7 +175,7 @@ export default class meetingRepository {
         count(*)
       FROM
         participatesMeeting
-      WHERE meetingId = meeting.id) as cntCurrentParticipant
+      WHERE meetingId = meeting.id and status = 1) as cntCurrentParticipant
     FROM
       meeting
     WHERE
@@ -246,7 +246,7 @@ export default class meetingRepository {
         count(*)
       FROM
         participatesMeeting
-      WHERE meetingId = meeting.id) as cntCurrentParticipant
+      WHERE meetingId = meeting.id and status = 1) as cntCurrentParticipant
     FROM
       meeting  
     WHERE
@@ -282,7 +282,7 @@ export default class meetingRepository {
         count(*)
       FROM
         participatesMeeting
-      WHERE meetingId = meeting.id) as cntCurrentParticipant
+      WHERE meetingId = meeting.id and status = 1) as cntCurrentParticipant
     FROM
       meeting  
     WHERE
@@ -336,9 +336,9 @@ export default class meetingRepository {
     set
       title = ?,
       content = ?,
-      startAt = STR_TO_DATE(?, '%Y-%m-%d %H:%i:%s'),
-      endAt = STR_TO_DATE(?, '%Y-%m-%d %H:%i:%s'),
-      deadline = STR_TO_DATE(?, '%Y-%m-%d %H:%i:%s'),
+      startAt = ?,
+      endAt = ?,
+      deadline = ?,
       maxParticipant = ?,
       place = ?
     where

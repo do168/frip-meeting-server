@@ -33,16 +33,16 @@ export default class userRepository {
     const sql = `
     SELECT
       meetingId,
-      userId,
+      userId as id
     FROM
       participatesMeeting
     WHERE
-      id in (${meetingIds}) and status = 1
+      meetingId in (${meetingIds}) and status = 1
     `;
     const result = await mysql.connect(sql);
-    if (this.serviceUtil.isEmpty(result) || this.serviceUtil.isEmpty(result[0])) {
+    if (this.serviceUtil.isEmpty(result)) {
       throw new DBException();
     }
-    return result[0][0];
+    return result[0];
   }
 }

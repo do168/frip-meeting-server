@@ -128,6 +128,16 @@ export default class ServiceUtil {
 
   public makeConnection(result: (Meeting | Review)[], page: Page, type: string): Connection<any> {
     // 결과 길이가 orginFirst + 1 과 같다면 originFirst로, 아니라면 그거보다 작은 result 자체를 totalCount로 한다.
+    if (result.length == 0) {
+      return {
+        totalCount: 0,
+        pageInfo: {
+          hasNextPage: false,
+          endCursor: '',
+        },
+        edges: [],
+      };
+    }
     const totalcount = result.length == page.first ? page.first - 1 : result.length;
     // 길이로 다음 페이지가 존재한느지 검사
     const hasNextPage = result.length == page.first;
